@@ -46,11 +46,14 @@ describe("connector for notify endpoint", function test() {
   });
 
   it("should send users to customer.io", (done) => {
-    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", { first_name: "James", last_name: "Bond" });
+    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
+      first_name: "James",
+      last_name: "Bond"
+    });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: { email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond" },
-      changes: [],
+      changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
@@ -70,7 +73,10 @@ describe("connector for notify endpoint", function test() {
   });
 
   it("should send events to customer.io", (done) => {
-    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", { first_name: "Katy", last_name: "Perry" });
+    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
+      first_name: "Katy",
+      last_name: "Perry"
+    });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
       context: {
         page: "http://www.google.com"
@@ -93,7 +99,7 @@ describe("connector for notify endpoint", function test() {
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
-      changes: [],
+      changes: {},
       events: [{
         event: "page",
         context: {
@@ -126,6 +132,43 @@ describe("connector for notify endpoint", function test() {
         assert(requestData.body.email === "foo@test.com");
         assert(_.get(requestData.body, "traits_customerio/id") === "54321");
 
+        done();
+      });
+    });
+  });
+
+  it("should not send user if he was already sent", (done) => {
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@bar.com", test_id: "66666", first_name: "James", last_name: "Bond" },
+      changes: {
+        user: {
+          "traits_customerio/id": [null, "66666"]
+        }
+      },
+      events: [],
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
+    }).then(() => {
+      minihull.on("incoming.request", () => {
+        assert.fail();
+      });
+    });
+
+    setTimeout(() => {
+      done();
+    }, 1500);
+  });
+
+  it.only("should delete user from customer.io if he does not match segments", (done) => {
+    const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
+
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@bar.com", test_id: "77777", first_name: "James", last_name: "Bond", "traits_customerio/id": 77777 },
+      changes: {},
+      events: [],
+      segments: []
+    }).then(() => {
+      minihull.on("incoming.request", () => {
+        deleteUserNock.done();
         done();
       });
     });

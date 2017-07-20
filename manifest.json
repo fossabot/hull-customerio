@@ -17,7 +17,8 @@
     },
     {
       "name": "anonymous_events",
-      "title": "set if Connector should send events about user who id is undefined"
+      "title": "set if Connector should send events about user who id is undefined",
+      "type": "string"
     },
     {
       "name": "events_filter",
@@ -27,15 +28,18 @@
     },
     {
       "name": "batch_delete_users",
-      "title": "set if connector should delete users that does not match synchronized_segments"
+      "title": "set if connector should delete users that does not match synchronized_segments",
+      "type": "string"
     },
     {
       "name": "customerio_site_id",
-      "title": "id that can be used to connect with customer.io API"
+      "title": "id that can be used to connect with customer.io API",
+      "type": "string"
     },
     {
       "name": "customerio_api_key",
-      "title": "key that can be used to connect with customer.io API"
+      "title": "key that can be used to connect with customer.io API",
+      "type": "string"
     },
     {
       "name": "hull_user_id_mapping",
