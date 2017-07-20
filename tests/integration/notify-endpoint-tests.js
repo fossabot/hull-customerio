@@ -158,7 +158,7 @@ describe("connector for notify endpoint", function test() {
     }, 1500);
   });
 
-  it.only("should delete user from customer.io if he does not match segments", (done) => {
+  it("should delete user from customer.io if he does not match segments", (done) => {
     const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
