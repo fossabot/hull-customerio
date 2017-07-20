@@ -1,4 +1,5 @@
 import _ from "lodash";
+import moment from "moment";
 
 export default function updateUser(ctx: Object, messages: []) {
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
@@ -23,8 +24,15 @@ export default function updateUser(ctx: Object, messages: []) {
 
     const filterSegments = _.get(ctx.ship.private_settings, "synchronized_segments");
 
-    if (_.includes(segments.map(s => s.id), filterSegments) && !_.get(changes, "user['traits_customerio/id']", false)) {
-      promises.push(ctx.syncAgent.sendAllUserProperties(user));
+    if (_.includes(segments.map(s => s.id), filterSegments)) {
+      if (!_.get(changes, "user['traits_customerio/id']", false)) {
+        promises.push(ctx.syncAgent.sendAllUserProperties(user));
+      }
+    } else if (!_.get(user, "traits_customerio/deleted_at")) {
+      promises.push(
+        ctx.syncAgent.deleteBatchOfUsers([user])
+          .then(() => ctx.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() }))
+      );
     }
 
     return Promise.all(promises);

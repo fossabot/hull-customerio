@@ -1,7 +1,7 @@
 import { Connector } from "hull";
 import express from "express";
 
-import server from "../../server/server";
+import server from "../../../server/server";
 
 export default function bootstrap() {
   const app = express();

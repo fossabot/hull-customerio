@@ -29,7 +29,7 @@
       }
     },
     {
-      "name": "batch-delete-users",
+      "name": "batch_delete_users",
       "title": "set if connector should delete users that does not match synchronized_segments"
     },
     {
