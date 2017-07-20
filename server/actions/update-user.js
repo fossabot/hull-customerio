@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-export default function updateUser(ctx: any, messages: []) {
+export default function updateUser(ctx: Object, messages: []) {
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
     const shouldSendAnonymousEvents = _.has(ctx.ship.private_settings, "anonymous_events");
     const eventsFilter = _.get(ctx.ship.private_settings, "events_filter", []);
@@ -9,13 +9,13 @@ export default function updateUser(ctx: any, messages: []) {
       const usersCustomerioId = _.get(user, _.get(user, "traits_customerio/id"), ctx.syncAgent.getUsersCustomerioId(user));
 
       if (e.event === "page") {
-        acc.push(ctx.syncAgent.savePageEvent(user, e.context.page, e));
+        acc.push(ctx.syncAgent.sendPageEvent(user, e.context.page, e));
       } else if (usersCustomerioId) {
         const userIdent = { email: user.email };
         userIdent[ctx.syncAgent.getIdMapping()] = usersCustomerioId;
-        acc.push(ctx.syncAgent.saveUserEvent(userIdent, e.properties.name, e));
+        acc.push(ctx.syncAgent.sendUserEvent(userIdent, e.properties.name, e));
       } else if (shouldSendAnonymousEvents) {
-        acc.push(ctx.syncAgent.saveAnonymousEvent(e.properties.name, e));
+        acc.push(ctx.syncAgent.sendAnonymousEvent(e.properties.name, e));
       }
 
       return acc;

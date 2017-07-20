@@ -4,19 +4,19 @@ import CustomerioClient from "./customerio-client";
 
 export default class SyncAgent {
   customerioClient: CustomerioClient;
-  metric: any;
-  client: any;
+  metric: Object;
+  client: Object;
   idMapping: string;
   bottleneck: Bottleneck;
   userAttributesMapping: Array<string>;
 
-  constructor(ctx: any, bottleneck: Bottleneck, customerioSiteId: string, customerioApiKey: string, idMapping: string) {
+  constructor(ctx: Object, bottleneck: Bottleneck, customerioSiteId: string, customerioApiKey: string) {
     const { ship, client, metric } = ctx;
     this.customerioClient = new CustomerioClient(customerioSiteId, customerioApiKey);
     this.metric = metric;
     this.client = client;
 
-    this.idMapping = idMapping;
+    this.idMapping = _.get(ship.private_settings, "hull_id_mapping", "external_id");
     this.userAttributesMapping = _.get(ship.private_settings, "sync_fields_to_customerio", []);
     this.bottleneck = bottleneck;
   }
@@ -25,11 +25,11 @@ export default class SyncAgent {
     return !!this.idMapping && this.customerioClient.isConfigured();
   }
 
-  sendBatchOfUsers(users: Array<any>) {
+  sendBatchOfUsers(users: Array<Object>) {
     return users.forEach(user => this.sendAllUserProperties(user));
   }
 
-  deleteBatchOfUsers(users: Array<any>) {
+  deleteBatchOfUsers(users: Array<Object>) {
     return users.forEach(user => this.bottleneck.schedule(this._deleteUser.bind(this), user));
   }
 
@@ -41,7 +41,7 @@ export default class SyncAgent {
     return this.idMapping;
   }
 
-  sendAllUserProperties(user: any) {
+  sendAllUserProperties(user: Object) {
     const email = _.get(user, "email");
     if (!email) {
       this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing email" });
@@ -79,7 +79,7 @@ export default class SyncAgent {
       });
   }
 
-  saveAnonymousEvent(eventName: string, eventData: any) {
+  sendAnonymousEvent(eventName: string, eventData: Object) {
     return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this), eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
@@ -88,7 +88,7 @@ export default class SyncAgent {
       .catch((err) => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err }));
   }
 
-  savePageEvent(userIdent: any, page: string, event: any) {
+  sendPageEvent(userIdent: Object, page: string, event: Object) {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -99,12 +99,12 @@ export default class SyncAgent {
     return this.bottleneck.schedule(this.customerioClient.sendPageViewEvent.bind(this), id, page, event)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
-        this.metric.increment("ship.outgoing.events", 1);
+        return this.metric.increment("ship.outgoing.events", 1);
       })
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err }));
   }
 
-  saveUserEvent(userIdent: any, eventName: string, eventData) {
+  sendUserEvent(userIdent: Object, eventName: string, eventData) {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -115,7 +115,7 @@ export default class SyncAgent {
     return this.bottleneck.schedule(this.customerioClient.sendCustomerEvent.bind(this), id, eventName, eventData)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
-        this.metric.increment("ship.outgoing.events", 1);
+        return this.metric.increment("ship.outgoing.events", 1);
       })
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err }));
   }
@@ -128,7 +128,7 @@ export default class SyncAgent {
    * @private
    */
 
-  _deleteUser(userIdent: any) {
+  _deleteUser(userIdent: Object) {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -149,7 +149,7 @@ export default class SyncAgent {
    * @private
    */
 
-  _sendUsersProperties(userIdent: any, userTraits: any) {
+  _sendUsersProperties(userIdent: Object, userTraits: Object) {
     const id = this.getUsersCustomerioId(userIdent);
 
     this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userTraits).length });

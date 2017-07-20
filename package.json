@@ -23,12 +23,12 @@
   "scripts": {
     "build": "npm run clean && npm run build:server",
     "build:server": "NODE_ENV=development babel-watch -L server/index",
-    "start:dev": "NODE_ENV=development LOG_LEVEL=debug ./node_modules/.bin/babel-node -- server",
+    "start:dev": "NODE_ENV=development LOG_LEVEL=debug babel-node -- server",
     "test": "npm run test:lint && npm run test:units && npm run test:specs",
-    "test:lint": "./node_modules/.bin/eslint server",
-    "test:unit": "NODE_ENV=test ./node_modules/.bin/mocha -R spec ./tests/unit",
-    "test:integration": "NODE_ENV=test ./node_modules/.bin/mocha -R spec ./tests/integration",
-    "clean": "./node_modules/.bin/rimraf dist; ./node_modules/.bin/rimraf lib"
+    "test:lint": "eslint server",
+    "test:unit": "NODE_ENV=test mocha -R spec ./tests/unit",
+    "test:integration": "NODE_ENV=test mocha -R spec ./tests/integration",
+    "clean": "rimraf dist; rimraf lib"
   },
   "keywords": [
     "hull",

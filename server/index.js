@@ -11,8 +11,7 @@ const {
   PORT,
   OVERRIDE_FIREHOSE_URL,
   CUSTOMER_IO_SITE_ID = "",
-  CUSTOMER_IO_API_KEY = "",
-  HULL_USER_ID_MAPPING = ""
+  CUSTOMER_IO_API_KEY = ""
 } = process.env;
 
 if (LOG_LEVEL) {
@@ -37,5 +36,5 @@ connector.setupApp(app);
 
 const bottleneck = new Bottleneck(30, 34);
 
-app = Server(app, bottleneck, { customerioSiteId: CUSTOMER_IO_SITE_ID, customerioApiKey: CUSTOMER_IO_API_KEY, idMapping: HULL_USER_ID_MAPPING });
+app = Server(app, bottleneck, { customerioSiteId: CUSTOMER_IO_SITE_ID, customerioApiKey: CUSTOMER_IO_API_KEY });
 connector.startApp(app);

@@ -21,7 +21,7 @@ export default class CustomerioClient {
     return !!this.auth.username && !!this.auth.password;
   }
 
-  identify(userId: string, attributes: any) {
+  identify(userId: string, attributes: Object) {
     return this.request(`${this.urlPrefix}/customers/${userId}`, "put", attributes);
   }
 
@@ -29,7 +29,7 @@ export default class CustomerioClient {
     return this.request(`${this.urlPrefix}/customers/${userId}`, "delete");
   }
 
-  sendPageViewEvent(userId: string, page: string, eventData: any) {
+  sendPageViewEvent(userId: string, page: string, eventData: Object) {
     return this.request(`${this.urlPrefix}/customers/${userId}/events`, "post", {
       type: "page",
       name: page,
@@ -37,21 +37,21 @@ export default class CustomerioClient {
     });
   }
 
-  sendCustomerEvent(userId: string, eventName: string, eventData: any) {
+  sendCustomerEvent(userId: string, eventName: string, eventData: Object) {
     return this.request(`${this.urlPrefix}/customers/${userId}/events`, "post", {
       name: eventName,
       data: eventData
     });
   }
 
-  sendAnonymousEvent(eventName: string, eventData: any) {
+  sendAnonymousEvent(eventName: string, eventData: Object) {
     return this.request(`${this.urlPrefix}/events`, "post", {
       name: eventName,
       data: eventData
     });
   }
 
-  request(url: string, method: string, data: any = {}) {
+  request(url: string, method: string, data: Object = {}) {
     return axios({
       method,
       url,
