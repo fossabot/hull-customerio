@@ -34,6 +34,19 @@
       "default" : false
     },
     {
+      "name": "customerio_site_id",
+      "title": "id that can be used to connect with customer.io API"
+    },
+    {
+      "name": "customerio_api_key",
+      "title": "key that can be used to connect with customer.io API"
+    },
+    {
+      "name": "hull_user_id_mapping",
+      "title": "user property that should be sent as customerId",
+      "type": "string"
+    },
+    {
       "name": "sync_fields_to_customerio",
       "title": "Custom Fields Sync (Hull to Customerio)",
       "type": "array",

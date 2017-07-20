@@ -7,8 +7,8 @@ import WebhookHandler from "./actions/webhook-handler";
 import ApplyAgent from "./middlewares/apply-agent";
 import * as actions from "./actions";
 
-export default function Server(app: express, bottleneck: Bottleneck, { customerioSiteId, customerioApiKey }: Object) {
-  app.use(ApplyAgent(bottleneck, customerioSiteId, customerioApiKey));
+export default function Server(app: express, bottleneck: Bottleneck) {
+  app.use(ApplyAgent(bottleneck));
 
   app.use("/batch", batchHandler(actions.batchHandler, {
     batchSize: 100,
@@ -25,6 +25,10 @@ export default function Server(app: express, bottleneck: Bottleneck, { customeri
   }));
 
   app.use("/webhooks", WebhookHandler);
+
+  app.get("/admin.html", (req, res) => {
+    res.render("admin.html", {});
+  });
 
   return app;
 }
