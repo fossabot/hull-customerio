@@ -1,0 +1,31 @@
+{
+  "name": "Hull Customerio",
+  "description": "Sync users with Customerio service",
+  "repository": "https://github.com/hull-ships/hull-customerio",
+  "website": "http://www.hull.io",
+  "success_url": "/readme",
+  "env": {
+    "SECRET" : {
+      "description" : "A Secret key",
+      "generator" : "secret"
+    },
+    "OVERRIDE_FIREHOSE_URL" : {
+      "description" : "Firehose url"
+    },
+    "LOG_LEVEL": {
+      "description" : "Logging level (emerg, alert, crit, error, warning, notice, info, debug)",
+      "value": "info"
+    },
+    "PORT": {
+      "description" : "Port to start Connector"
+    },
+    "CUSTOMER_IO_SITE_ID": {
+      "description" : "Customer IO Site Id"
+    },
+    "CUSTOMER_IO_API_KEY": {
+      "description" : "Customer IO Api Key"
+    }
+  },
+  "scripts": {}
+}
+

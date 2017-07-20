@@ -1,0 +1,66 @@
+{
+  "name": "Hull-customerio",
+  "description": "Sync users within customer.io service",
+  "tags": ["outgoing", "batch"],
+  "picture": "picture.png",
+  "ui": false,
+  "admin": "admin.html",
+  "readme" : "readme.md",
+  "version": "0.1.0",
+  "private_settings": [
+    {
+      "name": "synchronized_segments",
+      "title": "List of segment ids that should be synchronized with customer.io (Empty to send no one)",
+      "type": "array",
+      "default": [],
+      "format": "segment"
+    },
+    {
+      "name": "anonymous_events",
+      "title": "set if Connector should send events about user who id is undefined"
+    },
+    {
+      "name": "events_filter",
+      "title": "what events should be sent to customer.io. Hull event names should be provided (not Customerio)",
+      "type": "array",
+      "format": "table",
+      "items" : {
+        "type": "string"
+      }
+    },
+    {
+      "name": "batch-delete-users",
+      "title": "set if connector should delete users that does not match synchronized_segments"
+    },
+    {
+      "name": "sync_fields_to_customerio",
+      "title": "Custom Fields Sync (Hull to Customerio)",
+      "type": "array",
+      "format": "table",
+      "items": {
+        "type": "object",
+        "properties": {
+          "hull": {
+            "title": "Hull Field ID",
+            "type": "string",
+            "format": "trait",
+            "options": {
+              "placeholder": "Enter a Hull field id"
+            }
+          },
+          "name": {
+            "title": "Customerio Field ID",
+            "type": "string",
+            "format": "select",
+            "options" : {
+              "allowCreate": true,
+              "loadOptions" : "/schema/contact_properties"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "resources": [],
+  "subscriptions" : [ { "url" : "/notify" } ]
+}
