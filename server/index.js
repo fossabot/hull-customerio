@@ -1,6 +1,7 @@
 /* @flow */
 import Hull from "hull";
 import express from "express";
+import Bottleneck from "bottleneck";
 
 import Server from "./server";
 
@@ -34,5 +35,7 @@ const connector = new Hull.Connector(options);
 
 connector.setupApp(app);
 
-app = Server(app, { customerioSiteId: CUSTOMER_IO_SITE_ID, customerioApiKey: CUSTOMER_IO_API_KEY, idMapping: HULL_USER_ID_MAPPING });
+const bottleneck = new Bottleneck(30, 34);
+
+app = Server(app, bottleneck, { customerioSiteId: CUSTOMER_IO_SITE_ID, customerioApiKey: CUSTOMER_IO_API_KEY, idMapping: HULL_USER_ID_MAPPING });
 connector.startApp(app);
