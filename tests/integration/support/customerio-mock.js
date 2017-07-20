@@ -27,7 +27,7 @@ module.exports = function mocks() {
       })
       .reply(200),
     setUpSendCustomerEventNock: (userId, name, data) => nock(API_PREFIX)
-      .post(`customers/${userId}/events`, {
+      .post(`/customers/${userId}/events`, {
         name,
         data
       })
