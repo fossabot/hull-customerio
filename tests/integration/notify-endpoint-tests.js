@@ -16,7 +16,7 @@ describe("connector for notify endpoint", function test() {
     anonymous_events: "sure, why not",
     hull_user_id_mapping: "test_id",
     sync_fields_to_customerio: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event"]
+    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
   };
 
   beforeEach((done) => {
@@ -162,7 +162,13 @@ describe("connector for notify endpoint", function test() {
     const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
-      user: { email: "foo@bar.com", test_id: "77777", first_name: "James", last_name: "Bond", "traits_customerio/id": 77777 },
+      user: {
+        email: "foo@bar.com",
+        test_id: "77777",
+        first_name: "James",
+        last_name: "Bond",
+        "traits_customerio/id": 77777
+      },
       changes: {},
       events: [],
       segments: []
@@ -171,6 +177,38 @@ describe("connector for notify endpoint", function test() {
         deleteUserNock.done();
         done();
       });
+    });
+  });
+
+  it("should send anonymous event to customer.io", (done) => {
+    const anonymousEventNock = customerioMock.setUpSendAnonymousEventNock("Anonymous Event", {
+      event: "anonymous",
+      context: {
+        some_field: "testing"
+      },
+      properties: {
+        name: "Anonymous Event"
+      }
+    });
+
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green" },
+      changes: {},
+      events: [{
+        event: "anonymous",
+        context: {
+          some_field: "testing"
+        },
+        properties: {
+          name: "Anonymous Event"
+        }
+      }],
+      segments: []
+    }).then(() => {
+      setTimeout(() => {
+        anonymousEventNock.done();
+        done();
+      }, 1500);
     });
   });
 });

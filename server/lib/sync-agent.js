@@ -91,7 +91,7 @@ export default class SyncAgent {
     return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this.customerioClient), eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
-        this.metric.increment("ship.outgoing.events", 1);
+        return this.metric.increment("ship.outgoing.events", 1);
       })
       .catch((err) => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err }));
   }
