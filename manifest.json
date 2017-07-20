@@ -21,9 +21,9 @@
     },
     {
       "name": "events_filter",
-      "title": "what events should be sent to customer.io. Hull event names should be provided (not Customerio)",
+      "title": "What events should be sent to customer.io. Hull event names should be provided (not Customerio). Empty sends nothing",
       "type": "array",
-      "format": "table",
+      "format": "event",
       "items" : {
         "type": "string"
       }
