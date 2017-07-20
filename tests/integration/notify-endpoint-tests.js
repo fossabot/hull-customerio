@@ -67,4 +67,52 @@ describe("connector for notify endpoint", function test() {
       });
     });
   });
+
+  it("should send events to customer.io", (done) => {
+    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", { first_name: "Katy", last_name: "Perry" });
+    const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
+      viewed_at: "2017-07-21"
+    });
+    const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "Custom Event", {
+      tested: true
+    });
+
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
+      changes: [],
+      events: [{
+        event: "page",
+        context: {
+          page: "http://www.google.com"
+        },
+        properties: {
+          some_property: "test"
+        }
+      }, {
+        event: "custom",
+        context: {
+          context_property: "testify"
+        },
+        properties: {
+          name: "Custom Event"
+        }
+      }],
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
+    }).then(() => {
+      minihull.on("incoming.request", (req) => {
+        createCustomerNock.done();
+        // pageViewEventsMock.done();
+        // customerEventMock.done();
+        const requestData = req.body.batch[0];
+
+        assert(requestData.type === "traits");
+        assert(requestData.body.first_name === "Katy");
+        assert(requestData.body.last_name === "Perry");
+        assert(requestData.body.email === "foo@test.com");
+        assert(_.get(requestData.body, "traits_customerio/id") === "54321");
+
+        done();
+      });
+    });
+  });
 });

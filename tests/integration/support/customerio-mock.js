@@ -19,14 +19,14 @@ module.exports = function mocks() {
         data
       })
       .reply(200),
-    setUpSendPageViewEventNock: (userId, data, name) => nock(API_PREFIX)
+    setUpSendPageViewEventNock: (userId, name, data) => nock(API_PREFIX)
       .post(`/customers/${userId}/events`, {
         name,
         type: "page",
         data
       })
       .reply(200),
-    setUpSendCustomerEventNock: (userId, data, name) => nock(API_PREFIX)
+    setUpSendCustomerEventNock: (userId, name, data) => nock(API_PREFIX)
       .post(`customers/${userId}/events`, {
         name,
         data
