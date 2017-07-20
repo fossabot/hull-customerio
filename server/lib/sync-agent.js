@@ -1,5 +1,7 @@
+/* @flow */
 import _ from "lodash";
 import Bottleneck from "bottleneck";
+import moment from "moment";
 import CustomerioClient from "./customerio-client";
 
 export default class SyncAgent {
@@ -10,13 +12,13 @@ export default class SyncAgent {
   bottleneck: Bottleneck;
   userAttributesMapping: Array<string>;
 
-  constructor(ctx: Object, bottleneck: Bottleneck, customerioSiteId: string, customerioApiKey: string) {
+  constructor(ctx: Object, bottleneck: Bottleneck) {
     const { ship, client, metric } = ctx;
-    this.customerioClient = new CustomerioClient(customerioSiteId, customerioApiKey);
+    this.customerioClient = new CustomerioClient(_.get(ship.private_settings, "customerio_site_id"), _.get(ship.private_settings, "customerio_api_key"));
     this.metric = metric;
     this.client = client;
 
-    this.idMapping = _.get(ship.private_settings, "hull_id_mapping", "external_id");
+    this.idMapping = _.get(ship.private_settings, "hull_user_id_mapping", "external_id");
     this.userAttributesMapping = _.get(ship.private_settings, "sync_fields_to_customerio", []);
     this.bottleneck = bottleneck;
   }
@@ -26,15 +28,15 @@ export default class SyncAgent {
   }
 
   sendBatchOfUsers(users: Array<Object>) {
-    return users.forEach(user => this.sendAllUserProperties(user));
+    return Promise.all(users.map(user => this.sendAllUserProperties(user)));
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
-    return users.forEach(user => this.bottleneck.schedule(this._deleteUser.bind(this), user));
+    return Promise.all(users.map(user => this.deleteUser(user)));
   }
 
-  getUsersCustomerioId(user) {
-    return _.get(user, this.idMapping);
+  getUsersCustomerioId(user: Object) {
+    return _.get(user, this.idMapping, _.get(user, "traits_customerio/id"));
   }
 
   getIdMapping() {
@@ -48,7 +50,8 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    const userCustomerioId = _.get(user, this.idMapping, _.get(user, "traits_customerio/id"));
+    const alreadySetCustomerId = _.get(user, "traits_customerio/id");
+    const userCustomerioId = _.get(user, this.idMapping, alreadySetCustomerId);
 
     if (!userCustomerioId) {
       this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing id" });
@@ -56,7 +59,7 @@ export default class SyncAgent {
     }
 
     const created_at = Date.now() / 1000;
-    const userIdent = { hull_id: userCustomerioId, email };
+    const userIdent = { email };
 
     const filteredAttributes = _.pick(user, this.userAttributesMapping);
 
@@ -64,8 +67,8 @@ export default class SyncAgent {
       return _.get(_.find(this.userAttributesMapping, elem => elem.hull === key), "name") || key;
     });
 
-    if (!_.get(user, "traits_customerio/id")) {
-      filteredAndMappedAttributes = _.merge(filteredAttributes, { created_at });
+    if (!alreadySetCustomerId) {
+      filteredAndMappedAttributes = _.merge(filteredAttributes, { created_at, email });
     }
 
     return Promise.all(
@@ -77,6 +80,11 @@ export default class SyncAgent {
         this.metric.increment("ship.outgoing.users", 1);
         return this.client.asUser(userIdent).traits(_.merge(filteredAttributes, { "traits_customerio/id": userCustomerioId }));
       });
+  }
+
+  deleteUser(user: Object) {
+    return this.bottleneck.schedule(this._deleteUser.bind(this), user)
+      .then(() => this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() }));
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
@@ -104,7 +112,7 @@ export default class SyncAgent {
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err }));
   }
 
-  sendUserEvent(userIdent: Object, eventName: string, eventData) {
+  sendUserEvent(userIdent: Object, eventName: string, eventData: Object) {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -145,17 +153,14 @@ export default class SyncAgent {
    * Allows to send user properties to customer.io
    * This method should be called only with this.bottleneck.schedule(...)
    * @param userIdent
+   * @param userId
    * @param userTraits
    * @private
    */
 
-  _sendUsersProperties(userIdent: Object, userTraits: Object) {
-    const id = this.getUsersCustomerioId(userIdent);
-
+  _sendUsersProperties(userId: string, userIdent: Object, userTraits: Object) {
     this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userTraits).length });
-    return this.customerioClient.identify(id, {
-      ...userTraits
-    })
+    return this.customerioClient.identify(userId, userTraits)
       .then(() => this.client.asUser(userIdent).logger.info("outgoing.user.success"))
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err }));
   }

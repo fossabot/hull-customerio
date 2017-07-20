@@ -23,14 +23,24 @@
       "name": "events_filter",
       "title": "What events should be sent to customer.io. Hull event names should be provided (not Customerio). Empty sends nothing",
       "type": "array",
-      "format": "event",
-      "items" : {
-        "type": "string"
-      }
+      "format": "event"
     },
     {
       "name": "batch_delete_users",
       "title": "set if connector should delete users that does not match synchronized_segments"
+    },
+    {
+      "name": "customerio_site_id",
+      "title": "id that can be used to connect with customer.io API"
+    },
+    {
+      "name": "customerio_api_key",
+      "title": "key that can be used to connect with customer.io API"
+    },
+    {
+      "name": "hull_user_id_mapping",
+      "title": "user property that should be sent as customerId",
+      "type": "string"
     },
     {
       "name": "sync_fields_to_customerio",
