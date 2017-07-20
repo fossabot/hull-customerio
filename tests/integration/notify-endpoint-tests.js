@@ -15,7 +15,8 @@ describe("connector for notify endpoint", function test() {
     synchronized_segments: ["hullSegmentId"],
     anonymous_events: "sure, why not",
     hull_user_id_mapping: "test_id",
-    sync_fields_to_customerio: ["first_name", "last_name"]
+    sync_fields_to_customerio: ["first_name", "last_name"],
+    events_filter: ["Page Event", "Custom Event"]
   };
 
   beforeEach((done) => {
@@ -69,13 +70,14 @@ describe("connector for notify endpoint", function test() {
   });
 
   it("should send events to customer.io", (done) => {
-    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", { first_name: "Katy", last_name: "Perry" });
-    const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
-      viewed_at: "2017-07-21"
-    });
-    const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "Custom Event", {
-      tested: true
-    });
+    // const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", { first_name: "Katy", last_name: "Perry" });
+    // const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
+
+      // viewed_at: "2017-07-21"
+    // });
+    // const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "Custom Event", {
+    //   tested: true
+    // });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
@@ -86,6 +88,7 @@ describe("connector for notify endpoint", function test() {
           page: "http://www.google.com"
         },
         properties: {
+          name: "Page Event",
           some_property: "test"
         }
       }, {
@@ -100,7 +103,8 @@ describe("connector for notify endpoint", function test() {
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       minihull.on("incoming.request", (req) => {
-        createCustomerNock.done();
+        console.log(req.body);
+        // createCustomerNock.done();
         // pageViewEventsMock.done();
         // customerEventMock.done();
         const requestData = req.body.batch[0];
