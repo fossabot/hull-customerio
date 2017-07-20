@@ -8,7 +8,7 @@ export default function bootstrap() {
   let app = express();
   const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" } });
   connector.setupApp(app);
-  app = Server(app, new Bottleneck(30, 34), { customerioSiteId: "", customerioApiKey: "" });
+  app = Server(app, new Bottleneck(30, 34));
 
   connector.startWorker();
   return connector.startApp(app);
