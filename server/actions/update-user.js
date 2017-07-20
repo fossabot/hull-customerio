@@ -12,10 +12,8 @@ export default function updateUser({ service, ship, client }: Object, messages: 
       const usersCustomerioId = _.get(user, _.get(user, "traits_customerio/id"), syncAgent.getUsersCustomerioId(user));
 
       if (e.event === "page") {
-        console.log("sending page event");
         acc.push(syncAgent.sendPageEvent(user, e.context.page, e));
       } else if (usersCustomerioId) {
-        console.log("sending customer event");
         const userIdent = { email: user.email };
         userIdent[syncAgent.getIdMapping()] = usersCustomerioId;
         acc.push(syncAgent.sendUserEvent(userIdent, e.properties.name, e));

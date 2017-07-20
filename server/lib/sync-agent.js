@@ -88,7 +88,7 @@ export default class SyncAgent {
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this), eventName, eventData)
+    return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this.customerioClient), eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
         this.metric.increment("ship.outgoing.events", 1);
@@ -104,7 +104,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    return this.bottleneck.schedule(this.customerioClient.sendPageViewEvent.bind(this), id, page, event)
+    return this.bottleneck.schedule(this.customerioClient.sendPageViewEvent.bind(this.customerioClient), id, page, event)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
@@ -120,7 +120,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    return this.bottleneck.schedule(this.customerioClient.sendCustomerEvent.bind(this), id, eventName, eventData)
+    return this.bottleneck.schedule(this.customerioClient.sendCustomerEvent.bind(this.customerioClient), id, eventName, eventData)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
