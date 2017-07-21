@@ -1,3 +1,4 @@
+/* @flow */
 import _ from "lodash";
 
 export default function updateUser({ service, ship, client }: Object, messages: []) {

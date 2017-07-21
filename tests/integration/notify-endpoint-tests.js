@@ -6,7 +6,7 @@ import _ from "lodash";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
-describe("connector for notify endpoint", function test() {
+describe("Connector for notify endpoint", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
@@ -166,7 +166,7 @@ describe("connector for notify endpoint", function test() {
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       minihull.on("incoming.request", () => {
-        done("incoming request should not happen");
+        done("incoming request should not happen !");
       });
     });
 

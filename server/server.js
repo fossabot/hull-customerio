@@ -1,23 +1,29 @@
 /* @flow */
 import express from "express";
 import Bottleneck from "bottleneck";
-import { notifHandler, batchHandler } from "hull/lib/utils";
+import { notifHandler } from "hull/lib/utils";
 
-import WebhookHandler from "./actions/webhook-handler";
+import webhookHandler from "./actions/webhook-handler";
 import ApplyAgent from "./middlewares/apply-agent";
 import * as actions from "./actions";
-import RequireConfiguration from "./middlewares/check-connector-configuration";
+import requireConfiguration from "./middlewares/check-connector-configuration";
 
 export default function Server(app: express, bottleneck: Bottleneck) {
   app.get("/admin.html", (req, res) => {
-    res.render("admin.html", { hostname: req.hostname });
+    res.render("admin.html", { hostname: req.hostname, token: req.hull.token });
   });
 
-  app.use(ApplyAgent(bottleneck), RequireConfiguration);
+  app.use("/webhooks", webhookHandler);
 
-  app.use("/batch", batchHandler(actions.batchHandler, {
-    batchSize: 100,
-    groupTraits: false
+  app.use(ApplyAgent(bottleneck), requireConfiguration);
+
+  app.use("/batch", notifHandler({
+    userHandlerOptions: {
+      groupTraits: false
+    },
+    handlers: {
+      "user:update": actions.batchHandler
+    }
   }));
 
   app.use("/notify", notifHandler({
@@ -28,8 +34,6 @@ export default function Server(app: express, bottleneck: Bottleneck) {
       "user:update": actions.updateUser
     }
   }));
-
-  app.use("/webhooks", WebhookHandler);
 
   return app;
 }
