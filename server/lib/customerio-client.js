@@ -17,7 +17,7 @@ export default class CustomerioClient {
   }
 
   isConfigured() {
-    return !!this.auth.username && !!this.auth.password;
+    return this.auth.username && this.auth.password;
   }
 
   identify(userId: string, attributes: Object) {

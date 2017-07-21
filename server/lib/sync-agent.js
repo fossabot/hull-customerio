@@ -24,7 +24,7 @@ export default class SyncAgent {
   }
 
   isConfigured() {
-    return !!this.idMapping && this.customerioClient.isConfigured();
+    return this.idMapping && this.customerioClient.isConfigured();
   }
 
   sendBatchOfUsers(users: Array<Object>) {
@@ -61,22 +61,23 @@ export default class SyncAgent {
     const created_at = Date.now() / 1000;
     const userIdent = { email };
 
-    const filteredSegments = _.pick(user, this.userAttributesMapping.map(a => a.hull));
+    const filteredHullUserTraits = _.pick(user, this.userAttributesMapping.map(a => a.hull));
 
-    let customerioUserAttributes = _.mapKeys(filteredSegments, (value, key) => {
+    let customerioUserAttributes = _.mapKeys(filteredHullUserTraits, (value, key) => {
       return _.find(this.userAttributesMapping, elem => elem.hull === key).name;
     });
 
-    customerioUserAttributes = _.merge(customerioUserAttributes, userIdent);
-
     if (!alreadySetCustomerId) {
-      customerioUserAttributes = _.merge(customerioUserAttributes, { created_at });
+      customerioUserAttributes = _.merge({ created_at }, customerioUserAttributes);
     }
+    customerioUserAttributes = _.merge(userIdent, customerioUserAttributes);
+
 
     const hullUserTraits = _.merge(
       { "traits_customerio/id": userCustomerioId },
+      { "traits_customerio/created_at": created_at },
       _.mapKeys(
-        _.merge(filteredSegments, { id: userCustomerioId, email }),
+        _.merge(filteredHullUserTraits, { id: userCustomerioId, email }),
         ((value, key) => `traits_customerio/${key}`)
       ));
 
@@ -165,13 +166,13 @@ export default class SyncAgent {
    * This method should be called only with this.bottleneck.schedule(...)
    * @param userIdent
    * @param userId
-   * @param userTraits
+   * @param userAttributes
    * @private
    */
 
-  _sendUsersProperties(userId: string, userIdent: Object, userTraits: Object) {
-    this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userTraits).length });
-    return this.customerioClient.identify(userId, userTraits)
+  _sendUsersProperties(userId: string, userIdent: Object, userAttributes: Object) {
+    this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userAttributes).length });
+    return this.customerioClient.identify(userId, userAttributes)
       .then(() => this.client.asUser(userIdent).logger.info("outgoing.user.success"))
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err }));
   }

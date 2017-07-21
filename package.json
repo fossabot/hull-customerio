@@ -28,7 +28,7 @@
     "test:lint": "eslint server",
     "test:flow": "flow check",
     "test:unit": "NODE_ENV=test mocha -R spec ./tests/unit",
-    "test:integration": "NODE_ENV=test mocha -R spec ./tests/integration",
+    "test:integration": "NODE_ENV=test mocha -R spec ./tests/integration/index",
     "clean": "rimraf dist; rimraf lib"
   },
   "keywords": [
