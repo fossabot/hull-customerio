@@ -15,7 +15,7 @@ describe("connector for notify endpoint", function test() {
     synchronized_segments: ["hullSegmentId"],
     anonymous_events: "sure, why not",
     hull_user_id_mapping: "test_id",
-    sync_fields_to_customerio: ["first_name", "last_name"],
+    sync_fields_to_customerio: [{ hull: "first_name", name: "firstName" }, { hull: "last_name", name: "lastName" }],
     events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
   };
 
@@ -47,8 +47,8 @@ describe("connector for notify endpoint", function test() {
 
   it("should send users to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
-      first_name: "James",
-      last_name: "Bond"
+      firstName: "James",
+      lastName: "Bond"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -62,9 +62,9 @@ describe("connector for notify endpoint", function test() {
         const requestData = req.body.batch[0];
 
         assert(requestData.type === "traits");
-        assert(requestData.body.first_name === "James");
-        assert(requestData.body.last_name === "Bond");
-        assert(requestData.body.email === "foo@bar.com");
+        assert(_.get(requestData.body, "traits_customerio/first_name") === "James");
+        assert(_.get(requestData.body, "traits_customerio/last_name") === "Bond");
+        assert(_.get(requestData.body, "traits_customerio/email") === "foo@bar.com");
         assert(_.get(requestData.body, "traits_customerio/id") === "34567");
 
         done();
@@ -74,8 +74,8 @@ describe("connector for notify endpoint", function test() {
 
   it("should send events to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
-      first_name: "Katy",
-      last_name: "Perry"
+      firstName: "Katy",
+      lastName: "Perry"
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
       context: {
@@ -127,9 +127,9 @@ describe("connector for notify endpoint", function test() {
         const requestData = req.body.batch[0];
 
         assert(requestData.type === "traits");
-        assert(requestData.body.first_name === "Katy");
-        assert(requestData.body.last_name === "Perry");
-        assert(requestData.body.email === "foo@test.com");
+        assert(_.get(requestData.body, "traits_customerio/first_name") === "Katy");
+        assert(_.get(requestData.body, "traits_customerio/last_name") === "Perry");
+        assert(_.get(requestData.body, "traits_customerio/email") === "foo@test.com");
         assert(_.get(requestData.body, "traits_customerio/id") === "54321");
 
         done();
@@ -138,8 +138,13 @@ describe("connector for notify endpoint", function test() {
   });
 
   it("should not send user if he was already sent", (done) => {
+    customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
+      firstName: "Olivia",
+      lastName: "Wilde"
+    });
+
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
-      user: { email: "foo@bar.com", test_id: "66666", first_name: "James", last_name: "Bond" },
+      user: { email: "foo@bar.com", test_id: "66666", first_name: "Olivia", last_name: "Wilde", "traits_customerio/id": "66666" },
       changes: {
         user: {
           "traits_customerio/id": [null, "66666"]
@@ -149,7 +154,7 @@ describe("connector for notify endpoint", function test() {
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       minihull.on("incoming.request", () => {
-        assert.fail();
+        done("incoming request should not happen");
       });
     });
 

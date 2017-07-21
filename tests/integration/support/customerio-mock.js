@@ -10,6 +10,11 @@ module.exports = function mocks() {
         created_at: /.*/
       }))
       .reply(200),
+    setUpAlreadyIdentifiedCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
+      .put(`/customers/${userId}`, _.merge(attributes, {
+        email
+      }))
+      .reply(200),
     setUpDeleteCustomerNock: (userId) => nock(API_PREFIX)
       .delete(`/customers/${userId}`)
       .reply(200),

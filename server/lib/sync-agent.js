@@ -10,7 +10,7 @@ export default class SyncAgent {
   client: Object;
   idMapping: string;
   bottleneck: Bottleneck;
-  userAttributesMapping: Array<string>;
+  userAttributesMapping: Array<Object>;
 
   constructor(ctx: Object, bottleneck: Bottleneck) {
     const { ship, client, metric } = ctx;
@@ -61,24 +61,35 @@ export default class SyncAgent {
     const created_at = Date.now() / 1000;
     const userIdent = { email };
 
-    const filteredAttributes = _.pick(user, this.userAttributesMapping);
+    const filteredSegments = _.pick(user, this.userAttributesMapping.map(a => a.hull));
 
-    let filteredAndMappedAttributes = _.mapKeys(filteredAttributes, (value, key) => {
-      return _.get(_.find(this.userAttributesMapping, elem => elem.hull === key), "name") || key;
+    let customerioUserAttributes = _.mapKeys(filteredSegments, (value, key) => {
+      return _.find(this.userAttributesMapping, elem => elem.hull === key).name;
     });
 
+    customerioUserAttributes = _.merge(customerioUserAttributes, userIdent);
+
     if (!alreadySetCustomerId) {
-      filteredAndMappedAttributes = _.merge(filteredAttributes, { created_at, email });
+      customerioUserAttributes = _.merge(customerioUserAttributes, { created_at });
     }
 
+    const hullUserTraits = _.merge(
+      { "traits_customerio/id": userCustomerioId },
+      _.mapKeys(
+        _.merge(filteredSegments, { id: userCustomerioId, email }),
+        ((value, key) => `traits_customerio/${key}`)
+      ));
+
     return Promise.all(
-      (_.chunk(_.toPairs(filteredAndMappedAttributes), 30))
+      (_.chunk(_.toPairs(customerioUserAttributes), 30))
         .map(_.fromPairs)
         .map(userData => this.bottleneck.schedule(this._sendUsersProperties.bind(this), userCustomerioId, userIdent, userData))
     )
       .then(() => {
         this.metric.increment("ship.outgoing.users", 1);
-        return this.client.asUser(userIdent).traits(_.merge(filteredAttributes, { "traits_customerio/id": userCustomerioId }));
+        return this.client.asUser(userIdent).traits(
+          hullUserTraits
+        );
       });
   }
 
