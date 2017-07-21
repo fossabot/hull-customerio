@@ -6,6 +6,7 @@ export default function updateUser({ service, ship, client }: Object, messages: 
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
     const shouldSendAnonymousEvents = _.has(ship.private_settings, "anonymous_events");
     const eventsFilter = _.get(ship.private_settings, "events_filter", []);
+    const userDeletionEnabled = _.get(ship.private_settings, "enable_user_deletion");
 
     const promises = [];
 
@@ -31,7 +32,7 @@ export default function updateUser({ service, ship, client }: Object, messages: 
       if (!_.get(changes, "user['traits_customerio/id']", false)) {
         promises.push(syncAgent.sendAllUserProperties(user));
       }
-    } else if (!_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
+    } else if (userDeletionEnabled && !_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
       promises.push(syncAgent.deleteUser(user));
     }
 

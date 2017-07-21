@@ -22,17 +22,11 @@ describe("Connector should respect API limits", function test() {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-
-    minihull.stubConnector({
-      id: "123456789012345678901234", private_settings
-    });
-
-    minihull.stubSegments([
-      {
-        name: "testSegment",
-        id: "hullSegmentId"
-      }
-    ]);
+    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
+    minihull.stubSegments([{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
 
     setTimeout(() => {
       done();

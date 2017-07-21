@@ -13,29 +13,24 @@ describe("Connector for notify endpoint", function test() {
 
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
-    anonymous_events: "sure, why not",
+    anonymous_events: "true",
     user_id_mapping: "test_id",
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
+    events_filter: ["Page Event", "Custom Event", "Anonymous Event"],
+    enable_user_deletion: "true",
   };
 
   beforeEach((done) => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-
-    minihull.stubConnector({
-      id: "123456789012345678901234", private_settings
-    });
-
-    minihull.stubSegments([
-      {
-        name: "testSegment",
-        id: "hullSegmentId"
-      }
-    ]);
+    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
+    minihull.stubSegments([{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
 
     setTimeout(() => {
       done();
