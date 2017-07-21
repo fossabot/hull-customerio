@@ -89,7 +89,7 @@ describe("Connector for batch endpoint", function test() {
     });
   });
 
-  it.only("should send batch of users to customer.io", (done) => {
+  it("should send batch of users to customer.io", (done) => {
     const firstCustomerCreateNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
       last_name: "First"
