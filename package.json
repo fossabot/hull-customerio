@@ -22,7 +22,8 @@
   },
   "scripts": {
     "build": "npm run clean && npm run build:server",
-    "build:server": "NODE_ENV=development babel-watch -L server/index",
+    "build:server": "babel server -d build",
+    "start": "npm run build && node build",
     "start:dev": "NODE_ENV=development LOG_LEVEL=debug babel-node -- server",
     "test": "npm run test:lint && npm run test:flow && npm run test:integration",
     "test:lint": "eslint server",
@@ -52,7 +53,8 @@
     "express": "^4.15.3",
     "hull": "0.11.8",
     "lodash": "^4.13.1",
-    "moment": "2.18.1"
+    "moment": "2.18.1",
+    "rimraf": "^2.6.1"
   },
   "devDependencies": {
     "assert": "^1.4.1",

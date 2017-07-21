@@ -18,7 +18,8 @@
     {
       "name": "anonymous_events",
       "title": "set if Connector should send events about user who id is undefined",
-      "type": "boolean"
+      "type" : "boolean",
+      "default" : false
     },
     {
       "name": "events_filter",
@@ -29,7 +30,8 @@
     {
       "name": "batch_delete_users",
       "title": "set if connector should delete users that does not match synchronized_segments",
-      "type": "boolean"
+      "type" : "boolean",
+      "default" : false
     },
     {
       "name": "customerio_site_id",
