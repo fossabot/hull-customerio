@@ -24,7 +24,7 @@ export default class SyncAgent {
   }
 
   isConfigured() {
-    return this.idMapping && this.customerioClient.isConfigured();
+    return this.customerioClient.isConfigured();
   }
 
   sendBatchOfUsers(users: Array<Object>) {

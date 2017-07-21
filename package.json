@@ -28,8 +28,8 @@
     "test": "npm run test:lint && npm run test:flow && npm run test:integration",
     "test:lint": "eslint server",
     "test:flow": "flow check",
-    "test:unit": "NODE_ENV=test mocha -R spec ./tests/unit",
-    "test:integration": "NODE_ENV=test mocha -R spec ./tests/integration/index",
+    "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./tests/unit",
+    "test:integration": "NODE_ENV=test mocha --require babel-register -R spec ./tests/integration",
     "clean": "rimraf dist; rimraf lib"
   },
   "keywords": [

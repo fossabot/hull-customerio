@@ -13,7 +13,9 @@ describe("Connector should respect API limits", function test() {
 
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
-    hull_user_id_mapping: "test_id"
+    hull_user_id_mapping: "test_id",
+    customerio_site_id: "1",
+    customerio_api_key: "2"
   };
 
   beforeEach((done) => {
@@ -73,9 +75,9 @@ describe("Connector should respect API limits", function test() {
         const requestData = req.body.batch[0];
 
         assert(requestData.type === "traits");
-        assert(_.get(requestData.body, "traits_customerio/email") === "333@test.com");
+        assert.equal(_.get(requestData.body, "traits_customerio/email"), "333@test.com");
         assert(_.get(requestData.body, "traits_customerio/created_at"));
-        assert(_.get(requestData.body, "traits_customerio/id") === "33333");
+        assert.equal(_.get(requestData.body, "traits_customerio/id"), "33333");
         range.forEach(idx => assert(_.get(requestData.body, `traits_customerio/field_${idx}`) === idx));
 
         done();

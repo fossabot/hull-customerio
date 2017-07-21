@@ -15,6 +15,8 @@ describe("connector for notify endpoint", function test() {
     synchronized_segments: ["hullSegmentId"],
     anonymous_events: "sure, why not",
     hull_user_id_mapping: "test_id",
+    customerio_site_id: "1",
+    customerio_api_key: "2",
     sync_fields_to_customerio: [{ hull: "first_name", name: "firstName" }, { hull: "last_name", name: "lastName" }],
     events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
   };
@@ -61,13 +63,13 @@ describe("connector for notify endpoint", function test() {
         createCustomerNock.done();
         const { type, body } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/first_name") === "James");
-        assert(_.get(body, "traits_customerio/last_name") === "Bond");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/first_name"), "James");
+        assert.equal(_.get(body, "traits_customerio/last_name"), "Bond");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/email") === "foo@bar.com");
-        assert(_.get(body, "traits_customerio/id") === "34567");
-        assert(Object.keys(body).length === 5);
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@bar.com");
+        assert.equal(_.get(body, "traits_customerio/id"), "34567");
+        assert.equal(Object.keys(body).length, 5);
 
         done();
       });
@@ -128,13 +130,13 @@ describe("connector for notify endpoint", function test() {
         customerEventMock.done();
         const { body, type } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/first_name") === "Katy");
-        assert(_.get(body, "traits_customerio/last_name") === "Perry");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/first_name"), "Katy");
+        assert.equal(_.get(body, "traits_customerio/last_name"), "Perry");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/email") === "foo@test.com");
-        assert(_.get(body, "traits_customerio/id") === "54321");
-        assert(Object.keys(body).length === 5);
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@test.com");
+        assert.equal(_.get(body, "traits_customerio/id"), "54321");
+        assert.equal(Object.keys(body).length, 5);
 
         done();
       });
@@ -240,11 +242,11 @@ describe("connector for notify endpoint", function test() {
         createCustomerNock.done();
         const { body, type } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/email") === "foo@test2.com");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@test2.com");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/id") === "34567");
-        assert(Object.keys(body).length === 3);
+        assert.equal(_.get(body, "traits_customerio/id"), "34567");
+        assert.equal(Object.keys(body).length, 3);
 
         done();
       });
