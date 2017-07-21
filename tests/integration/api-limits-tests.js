@@ -13,9 +13,9 @@ describe("Connector should respect API limits", function test() {
 
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
-    hull_user_id_mapping: "test_id",
-    customerio_site_id: "1",
-    customerio_api_key: "2"
+    user_id_mapping: "test_id",
+    site_id: "1",
+    api_key: "2"
   };
 
   beforeEach((done) => {
@@ -49,19 +49,13 @@ describe("Connector should respect API limits", function test() {
 
     const hullUserIdent = { email: "333@test.com" };
     const hullUserFields = _.zipObject(range.map(i => `field_${i}`), range);
-    const customerioUserFields = _.zipObject(range.map(i => `field${i}`), range);
 
-    const hullUserKeys = Object.keys(hullUserFields);
-    const customerioUserKeys = Object.keys(customerioUserFields);
-    private_settings.sync_fields_to_customerio = range.map(id => {
-      return { hull: hullUserKeys[id], name: customerioUserKeys[id] };
-    });
-
+    private_settings.synchronized_attributes = Object.keys(hullUserFields);
 
     const firstBatchNock = customerioMock.setUpIdentifyCustomerNock("33333", "333@test.com",
-      _.pickBy(customerioUserFields, (v) => v < 28));
+      _.pickBy(hullUserFields, (v) => v < 28));
 
-    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCusotomerNock("33333", _.pickBy(customerioUserFields, (v) => v >= 28));
+    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCusotomerNock("33333", _.pickBy(hullUserFields, (v) => v >= 28));
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: _.merge({ test_id: "33333" }, hullUserIdent, hullUserFields),

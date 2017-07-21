@@ -14,10 +14,10 @@ describe("Connector for notify endpoint", function test() {
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
     anonymous_events: "sure, why not",
-    hull_user_id_mapping: "test_id",
-    customerio_site_id: "1",
-    customerio_api_key: "2",
-    sync_fields_to_customerio: [{ hull: "first_name", name: "firstName" }, { hull: "last_name", name: "lastName" }],
+    user_id_mapping: "test_id",
+    site_id: "1",
+    api_key: "2",
+    synchronized_attributes: ["first_name", "last_name"],
     events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
   };
 
@@ -49,8 +49,8 @@ describe("Connector for notify endpoint", function test() {
 
   it("should send users to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
-      firstName: "James",
-      lastName: "Bond"
+      first_name: "James",
+      last_name: "Bond"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -78,8 +78,8 @@ describe("Connector for notify endpoint", function test() {
 
   it("should send events to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
-      firstName: "Katy",
-      lastName: "Perry"
+      first_name: "Katy",
+      last_name: "Perry"
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
       context: {
@@ -145,8 +145,8 @@ describe("Connector for notify endpoint", function test() {
 
   it("should not send user if he was already sent", (done) => {
     customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
-      firstName: "Olivia",
-      lastName: "Wilde"
+      first_name: "Olivia",
+      last_name: "Wilde"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -229,7 +229,7 @@ describe("Connector for notify endpoint", function test() {
     });
   });
 
-  it("should send only email and created_at attributes if sync_fields_to_customerio does not contains other fields", (done) => {
+  it("should send only email and created_at attributes if synchronized_attributes does not contains other fields", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", {});
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {

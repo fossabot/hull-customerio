@@ -21,6 +21,7 @@ export default class CustomerioClient {
   }
 
   identify(userId: string, attributes: Object) {
+    console.log(attributes);
     return this.request(`${this.urlPrefix}/customers/${userId}`, "put", attributes);
   }
 

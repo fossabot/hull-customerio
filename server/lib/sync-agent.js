@@ -10,16 +10,16 @@ export default class SyncAgent {
   client: Object;
   idMapping: string;
   bottleneck: Bottleneck;
-  userAttributesMapping: Array<Object>;
+  userAttributesMapping: Array<string>;
 
   constructor(ctx: Object, bottleneck: Bottleneck) {
     const { ship, client, metric } = ctx;
-    this.customerioClient = new CustomerioClient(_.get(ship.private_settings, "customerio_site_id"), _.get(ship.private_settings, "customerio_api_key"));
+    this.customerioClient = new CustomerioClient(_.get(ship.private_settings, "site_id"), _.get(ship.private_settings, "api_key"));
     this.metric = metric;
     this.client = client;
 
-    this.idMapping = _.get(ship.private_settings, "hull_user_id_mapping", "external_id");
-    this.userAttributesMapping = _.get(ship.private_settings, "sync_fields_to_customerio", []);
+    this.idMapping = _.get(ship.private_settings, "user_id_mapping", "external_id");
+    this.userAttributesMapping = _.get(ship.private_settings, "synchronized_attributes", []);
     this.bottleneck = bottleneck;
   }
 
@@ -61,28 +61,20 @@ export default class SyncAgent {
     const created_at = Date.now() / 1000;
     const userIdent = { email };
 
-    const filteredHullUserTraits = _.pick(user, this.userAttributesMapping.map(a => a.hull));
-
-    let customerioUserAttributes = _.mapKeys(filteredHullUserTraits, (value, key) => {
-      return _.find(this.userAttributesMapping, elem => elem.hull === key).name;
-    });
+    let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
 
     if (!alreadySetCustomerId) {
-      customerioUserAttributes = _.merge({ created_at }, customerioUserAttributes);
+      filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
-    customerioUserAttributes = _.merge(userIdent, customerioUserAttributes);
+    filteredHullUserTraits = _.merge({ email: userIdent.email }, filteredHullUserTraits);
 
-
-    const hullUserTraits = _.merge(
-      { "traits_customerio/id": userCustomerioId },
-      { "traits_customerio/created_at": created_at },
-      _.mapKeys(
-        _.merge(filteredHullUserTraits, { id: userCustomerioId, email }),
+    const hullUserTraits = _.mapKeys(
+        _.merge({ id: userCustomerioId }, filteredHullUserTraits),
         ((value, key) => `traits_customerio/${key}`)
-      ));
+      );
 
     return Promise.all(
-      (_.chunk(_.toPairs(customerioUserAttributes), 30))
+      (_.chunk(_.toPairs(filteredHullUserTraits), 30))
         .map(_.fromPairs)
         .map(userData => this.bottleneck.schedule(this._sendUsersProperties.bind(this), userCustomerioId, userIdent, userData))
     )

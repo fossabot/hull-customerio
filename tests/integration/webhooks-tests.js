@@ -13,10 +13,10 @@ describe("Connector for webhooks endpoint", function test() {
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
     anonymous_events: "sure, why not",
-    hull_user_id_mapping: "test_id",
-    customerio_site_id: "1",
-    customerio_api_key: "2",
-    sync_fields_to_customerio: [{ hull: "first_name", name: "firstName" }, { hull: "last_name", name: "lastName" }],
+    user_id_mapping: "test_id",
+    site_id: "1",
+    api_key: "2",
+    synchronized_attributes: ["first_name", "lastName"],
     events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
   };
 

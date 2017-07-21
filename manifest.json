@@ -1,82 +1,92 @@
 {
   "name": "Hull-customerio",
-  "description": "Sync users within customer.io service",
-  "tags": ["outgoing", "batch"],
+  "description": "Sync users with Customer.io",
   "picture": "picture.png",
-  "ui": false,
-  "admin": "admin.html",
-  "readme" : "readme.md",
   "version": "0.1.0",
+  "tags": [
+    "outgoing",
+    "batch",
+    "oneColumn"
+  ],
   "private_settings": [
     {
+      "name": "credentials_title",
+      "title": "Credentials",
+      "format": "title",
+      "type": "string"
+    },
+    {
+      "name": "site_id",
+      "title": "Customer.io Site ID",
+      "type": "string"
+    },
+    {
+      "name": "api_key",
+      "title": "Customer.io API Key",
+      "type": "string"
+    },
+    {
+      "name": "configuration_title",
+      "title": "Configuration",
+      "format": "title",
+      "type": "string"
+    },
+    {
       "name": "synchronized_segments",
-      "title": "List of segment ids that should be synchronized with customer.io (Empty to send no one)",
+      "title": "Segments",
+      "description": "Send users only if they belong to one of these segments",
       "type": "array",
       "default": [],
       "format": "segment"
     },
     {
-      "name": "anonymous_events",
-      "title": "set if Connector should send events about user who id is undefined",
-      "type" : "boolean",
-      "default" : false
+      "name": "enable_user_deletion",
+      "title": "Enable User Deletion",
+      "description": "If this field is enabled, users who don't match the Segments above will be DELETED from Customer.io. Otherwise they will be ignored",
+      "type": "boolean",
+      "default": false
     },
     {
       "name": "events_filter",
-      "title": "What events should be sent to customer.io. Hull event names should be provided (not Customerio). Empty sends nothing",
+      "title": "Events",
+      "description": "Which Events to send to Customer.io",
       "type": "array",
       "format": "event"
     },
     {
-      "name": "batch_delete_users",
-      "title": "set if connector should delete users that does not match synchronized_segments",
-      "type" : "boolean",
-      "default" : false
+      "name": "anonymous_events",
+      "title": "Send events even for anonymous users",
+      "type": "boolean",
+      "default": false
     },
     {
-      "name": "customerio_site_id",
-      "title": "id that can be used to connect with customer.io API",
+      "name": "user_id_mapping",
+      "title": "Which user property that should be sent as customerId",
+      "type": "string",
+      "format": "trait",
+      "default": "external_id"
+    },
+    {
+      "name": "data_title",
+      "title": "Data Mapping",
+      "format": "title",
       "type": "string"
     },
     {
-      "name": "customerio_api_key",
-      "title": "key that can be used to connect with customer.io API",
-      "type": "string"
-    },
-    {
-      "name": "hull_user_id_mapping",
-      "title": "user property that should be sent as customerId",
-      "type": "string"
-    },
-    {
-      "name": "sync_fields_to_customerio",
-      "title": "Custom Fields Sync (Hull to Customerio)",
+      "name": "synchronized_attributes",
+      "title": "Send Attributes to Customer.io",
+      "description": "Email and customerId are sent automatically",
       "type": "array",
-      "format": "table",
-      "items": {
-        "type": "object",
-        "properties": {
-          "hull": {
-            "title": "Hull Field ID",
-            "type": "string",
-            "format": "trait",
-            "options": {
-              "placeholder": "Enter a Hull field id"
-            }
-          },
-          "name": {
-            "title": "Customerio Field ID",
-            "type": "string",
-            "format": "select",
-            "options" : {
-              "allowCreate": true,
-              "loadOptions" : "/schema/contact_properties"
-            }
-          }
-        }
-      }
+      "format": "trait"
     }
   ],
   "resources": [],
-  "subscriptions" : [ { "url" : "/notify" } ]
+  "readme": "readme.md",
+  "admin": "admin.html",
+  "ui": false,
+  "subscriptions": [
+    {
+      "url": "/notify"
+    }
+  ]
 }
