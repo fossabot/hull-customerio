@@ -30,6 +30,7 @@
     "test:flow": "flow check",
     "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./tests/unit",
     "test:integration": "NODE_ENV=test mocha --require babel-register -R spec ./tests/integration",
+    "test:coverage": "nyc --babel-cache --hook-run-in-context false npm test",
     "clean": "rimraf dist; rimraf lib"
   },
   "keywords": [
@@ -68,6 +69,12 @@
     "mocha": "^3.4.2",
     "nock": "^9.0.14",
     "sinon": "^1.17.4",
+    "nyc": "^11.0.3",
     "jwt-simple": "0.5.1"
+  },
+  "nyc": {
+    "include": [
+      "server"
+    ]
   }
 }
