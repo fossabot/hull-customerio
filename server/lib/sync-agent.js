@@ -10,7 +10,7 @@ export default class SyncAgent {
   client: Object;
   idMapping: string;
   bottleneck: Bottleneck;
-  userAttributesMapping: Array<string>;
+  userAttributesMapping: Array<Object>;
 
   constructor(ctx: Object, bottleneck: Bottleneck) {
     const { ship, client, metric } = ctx;
@@ -24,7 +24,7 @@ export default class SyncAgent {
   }
 
   isConfigured() {
-    return !!this.idMapping && this.customerioClient.isConfigured();
+    return this.idMapping && this.customerioClient.isConfigured();
   }
 
   sendBatchOfUsers(users: Array<Object>) {
@@ -61,24 +61,36 @@ export default class SyncAgent {
     const created_at = Date.now() / 1000;
     const userIdent = { email };
 
-    const filteredAttributes = _.pick(user, this.userAttributesMapping);
+    const filteredHullUserTraits = _.pick(user, this.userAttributesMapping.map(a => a.hull));
 
-    let filteredAndMappedAttributes = _.mapKeys(filteredAttributes, (value, key) => {
-      return _.get(_.find(this.userAttributesMapping, elem => elem.hull === key), "name") || key;
+    let customerioUserAttributes = _.mapKeys(filteredHullUserTraits, (value, key) => {
+      return _.find(this.userAttributesMapping, elem => elem.hull === key).name;
     });
 
     if (!alreadySetCustomerId) {
-      filteredAndMappedAttributes = _.merge(filteredAttributes, { created_at, email });
+      customerioUserAttributes = _.merge({ created_at }, customerioUserAttributes);
     }
+    customerioUserAttributes = _.merge(userIdent, customerioUserAttributes);
+
+
+    const hullUserTraits = _.merge(
+      { "traits_customerio/id": userCustomerioId },
+      { "traits_customerio/created_at": created_at },
+      _.mapKeys(
+        _.merge(filteredHullUserTraits, { id: userCustomerioId, email }),
+        ((value, key) => `traits_customerio/${key}`)
+      ));
 
     return Promise.all(
-      (_.chunk(_.toPairs(filteredAndMappedAttributes), 30))
+      (_.chunk(_.toPairs(customerioUserAttributes), 30))
         .map(_.fromPairs)
         .map(userData => this.bottleneck.schedule(this._sendUsersProperties.bind(this), userCustomerioId, userIdent, userData))
     )
       .then(() => {
         this.metric.increment("ship.outgoing.users", 1);
-        return this.client.asUser(userIdent).traits(_.merge(filteredAttributes, { "traits_customerio/id": userCustomerioId }));
+        return this.client.asUser(userIdent).traits(
+          hullUserTraits
+        );
       });
   }
 
@@ -91,7 +103,7 @@ export default class SyncAgent {
     return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this.customerioClient), eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
-        this.metric.increment("ship.outgoing.events", 1);
+        return this.metric.increment("ship.outgoing.events", 1);
       })
       .catch((err) => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err }));
   }
@@ -154,13 +166,13 @@ export default class SyncAgent {
    * This method should be called only with this.bottleneck.schedule(...)
    * @param userIdent
    * @param userId
-   * @param userTraits
+   * @param userAttributes
    * @private
    */
 
-  _sendUsersProperties(userId: string, userIdent: Object, userTraits: Object) {
-    this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userTraits).length });
-    return this.customerioClient.identify(userId, userTraits)
+  _sendUsersProperties(userId: string, userIdent: Object, userAttributes: Object) {
+    this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userAttributes).length });
+    return this.customerioClient.identify(userId, userAttributes)
       .then(() => this.client.asUser(userIdent).logger.info("outgoing.user.success"))
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err }));
   }

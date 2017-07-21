@@ -5,10 +5,18 @@ module.exports = function mocks() {
   const API_PREFIX = "https://track.customer.io/api/v1";
   return {
     setUpIdentifyCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
-      .put(`/customers/${userId}`, _.merge(attributes, {
+      .put(`/customers/${userId}`, _.merge({
         email,
         created_at: /.*/
+      }, attributes))
+      .reply(200),
+    setUpAlreadyIdentifiedCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
+      .put(`/customers/${userId}`, _.merge(attributes, {
+        email
       }))
+      .reply(200),
+    setUpNextIdentifyBatchCusotomerNock: (userId, attributes) => nock(API_PREFIX)
+      .put(`/customers/${userId}`, attributes)
       .reply(200),
     setUpDeleteCustomerNock: (userId) => nock(API_PREFIX)
       .delete(`/customers/${userId}`)
@@ -27,7 +35,7 @@ module.exports = function mocks() {
       })
       .reply(200),
     setUpSendCustomerEventNock: (userId, name, data) => nock(API_PREFIX)
-      .post(`customers/${userId}/events`, {
+      .post(`/customers/${userId}/events`, {
         name,
         data
       })

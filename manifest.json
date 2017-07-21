@@ -35,11 +35,13 @@
     },
     {
       "name": "customerio_site_id",
-      "title": "id that can be used to connect with customer.io API"
+      "title": "id that can be used to connect with customer.io API",
+      "type": "string"
     },
     {
       "name": "customerio_api_key",
-      "title": "key that can be used to connect with customer.io API"
+      "title": "key that can be used to connect with customer.io API",
+      "type": "string"
     },
     {
       "name": "hull_user_id_mapping",

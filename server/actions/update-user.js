@@ -30,10 +30,8 @@ export default function updateUser({ service, ship, client }: Object, messages: 
       if (!_.get(changes, "user['traits_customerio/id']", false)) {
         promises.push(syncAgent.sendAllUserProperties(user));
       }
-    } else if (!_.get(user, "traits_customerio/deleted_at")) {
-      promises.push(
-        syncAgent.deleteUser(user)
-      );
+    } else if (!_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
+      promises.push(syncAgent.deleteUser(user));
     }
 
     return Promise.all(promises);
