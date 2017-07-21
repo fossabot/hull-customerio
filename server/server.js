@@ -4,7 +4,7 @@ import Bottleneck from "bottleneck";
 import { notifHandler } from "hull/lib/utils";
 
 import webhookHandler from "./actions/webhook-handler";
-import ApplyAgent from "./middlewares/apply-agent";
+import applyAgent from "./middlewares/apply-agent";
 import * as actions from "./actions";
 import requireConfiguration from "./middlewares/check-connector-configuration";
 
@@ -15,7 +15,7 @@ export default function Server(app: express, bottleneck: Bottleneck) {
 
   app.use("/webhooks", webhookHandler);
 
-  app.use(ApplyAgent(bottleneck), requireConfiguration);
+  app.use(applyAgent(bottleneck), requireConfiguration);
 
   app.use("/batch", notifHandler({
     userHandlerOptions: {

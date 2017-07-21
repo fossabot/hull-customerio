@@ -3,6 +3,7 @@
   "description": "Sync users with Customer.io",
   "picture": "picture.png",
   "version": "0.1.0",
+  "admin": "admin.html",
   "tags": [
     "outgoing",
     "batch",

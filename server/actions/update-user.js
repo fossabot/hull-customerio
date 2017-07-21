@@ -2,6 +2,7 @@
 import _ from "lodash";
 
 export default function updateUser({ service, ship, client }: Object, messages: []) {
+  console.log(messages);
   const { syncAgent } = service;
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
     const shouldSendAnonymousEvents = _.has(ship.private_settings, "anonymous_events");

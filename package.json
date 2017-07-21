@@ -25,7 +25,7 @@
     "build:server": "babel server -d build",
     "start": "npm run build && node build",
     "start:dev": "NODE_ENV=development LOG_LEVEL=debug babel-node -- server",
-    "test": "npm run test:lint && npm run test:flow && npm run test:integration",
+    "test": "npm run test:lint && npm run test:flow && npm run test:integration && npm run test:unit",
     "test:lint": "eslint server",
     "test:flow": "flow check",
     "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./tests/unit",
