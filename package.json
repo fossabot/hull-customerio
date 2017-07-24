@@ -65,12 +65,13 @@
     "eslint": "^2.13.1",
     "eslint-config-airbnb-base": "^3.0.1",
     "eslint-plugin-import": "^1.9.2",
+    "flow-bin": "^0.51.0",
+    "jwt-simple": "0.5.1",
     "minihull": "^2.0.0",
     "mocha": "^3.4.2",
     "nock": "^9.0.14",
-    "sinon": "^1.17.4",
     "nyc": "^11.0.3",
-    "jwt-simple": "0.5.1"
+    "sinon": "^1.17.4"
   },
   "nyc": {
     "include": [
