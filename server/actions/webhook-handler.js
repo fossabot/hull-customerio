@@ -6,31 +6,25 @@ import eventsMapping from "../mappings/events-mapping";
 
 export default function webhookHandler(req: Request, res: Response) {
   res.send();
-  const reqContent = req.body;
+  const { data: { email_address, customer_id, campaign_id, template_id, subject }, event_type, timestamp, event_id } = req.body;
 
-  const eventName = _.get(eventsMapping, reqContent.event_type);
+  const eventName = _.get(eventsMapping, event_type);
   if (!eventName) {
     return Promise.resolve();
   }
 
   const user = {
-    email: reqContent.data.email_address
+    email: email_address
   };
 
   const asUser = req.hull.client.asUser({ email: user.email });
 
-  const eventPayload = {
-    eventName,
-    user
-  };
+  const eventPayload = { user, template_id, subject, customer_id, campaign_id };
 
   const context = {
-    event_id: reqContent.data.event_id,
-    created_at: reqContent.timestamp
+    event_id,
+    created_at: timestamp
   };
 
-  return asUser.track(eventPayload, context).then((result) => {
-    req.hull.metric.increment("ship.incoming.events", 1);
-    return result;
-  });
+  return asUser.track(eventName, eventPayload, context).then(() => req.hull.metric.increment("ship.incoming.events", 1));
 }

@@ -5,6 +5,7 @@ import Bottleneck from "bottleneck";
 
 export default function applyAgent(bottleneck: Bottleneck) {
   return (req: Request, res: Response, next: Next) => {
+    req.hull.service = req.hull.service || {};
     req.hull.service.syncAgent = new SyncAgent(req.hull, bottleneck);
     return next();
   };

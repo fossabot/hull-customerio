@@ -39,6 +39,12 @@ module.exports = function mocks() {
         name,
         data
       })
-      .reply(200)
+      .reply(200),
+    setUpCreateUserBadScenarioNock: (userId, email) => nock(API_PREFIX)
+      .put(`/customers/${userId}`, {
+        email,
+        created_at: /.*/
+      })
+      .reply(500)
   };
 };

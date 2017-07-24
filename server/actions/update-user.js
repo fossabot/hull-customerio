@@ -1,10 +1,12 @@
+/* @flow */
 import _ from "lodash";
 
-export default function updateUser({ service, ship, client }: Object, messages: []) {
+export default function updateUser({ service, ship }: Object, messages: []) {
   const { syncAgent } = service;
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
-    const shouldSendAnonymousEvents = _.has(ship.private_settings, "anonymous_events");
-    const eventsFilter = _.get(ship.private_settings, "events_filter", []);
+    const shouldSendAnonymousEvents = _.has(ship, "private_settings.anonymous_events");
+    const eventsFilter = _.get(ship, "private_settings.events_filter", []);
+    const userDeletionEnabled = _.get(ship, "private_settings.enable_user_deletion");
 
     const promises = [];
 
@@ -24,16 +26,16 @@ export default function updateUser({ service, ship, client }: Object, messages: 
       return acc;
     }, []));
 
-    const filterSegments = _.get(ship.private_settings, "synchronized_segments");
+    const filterSegments = _.get(ship, "private_settings.synchronized_segments");
 
-    if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {
-      if (!_.get(changes, "user['traits_customerio/id']", false)) {
+
+    if (!_.get(changes, "user['traits_customerio/id'][1]", false)) {
+      if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {
         promises.push(syncAgent.sendAllUserProperties(user));
+      } else if (userDeletionEnabled && !_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
+        promises.push(syncAgent.deleteUser(user));
       }
-    } else if (!_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
-      promises.push(syncAgent.deleteUser(user));
     }
-
     return Promise.all(promises);
   }));
 }

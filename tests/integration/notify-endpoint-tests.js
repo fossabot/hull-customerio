@@ -6,34 +6,31 @@ import _ from "lodash";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
-describe("connector for notify endpoint", function test() {
+describe("Connector for notify endpoint", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
 
   const private_settings = {
     synchronized_segments: ["hullSegmentId"],
-    anonymous_events: "sure, why not",
-    hull_user_id_mapping: "test_id",
-    sync_fields_to_customerio: [{ hull: "first_name", name: "firstName" }, { hull: "last_name", name: "lastName" }],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
+    anonymous_events: "true",
+    user_id_mapping: "test_id",
+    site_id: "1",
+    api_key: "2",
+    synchronized_attributes: ["first_name", "last_name"],
+    events_filter: ["Page Event", "Custom Event", "Anonymous Event"],
+    enable_user_deletion: "true",
   };
 
   beforeEach((done) => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-
-    minihull.stubConnector({
-      id: "123456789012345678901234", private_settings
-    });
-
-    minihull.stubSegments([
-      {
-        name: "testSegment",
-        id: "hullSegmentId"
-      }
-    ]);
+    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
+    minihull.stubSegments([{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
 
     setTimeout(() => {
       done();
@@ -47,8 +44,8 @@ describe("connector for notify endpoint", function test() {
 
   it("should send users to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
-      firstName: "James",
-      lastName: "Bond"
+      first_name: "James",
+      last_name: "Bond"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -61,13 +58,13 @@ describe("connector for notify endpoint", function test() {
         createCustomerNock.done();
         const { type, body } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/first_name") === "James");
-        assert(_.get(body, "traits_customerio/last_name") === "Bond");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/first_name"), "James");
+        assert.equal(_.get(body, "traits_customerio/last_name"), "Bond");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/email") === "foo@bar.com");
-        assert(_.get(body, "traits_customerio/id") === "34567");
-        assert(Object.keys(body).length === 5);
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@bar.com");
+        assert.equal(_.get(body, "traits_customerio/id"), "34567");
+        assert.equal(Object.keys(body).length, 5);
 
         done();
       });
@@ -76,8 +73,8 @@ describe("connector for notify endpoint", function test() {
 
   it("should send events to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
-      firstName: "Katy",
-      lastName: "Perry"
+      first_name: "Katy",
+      last_name: "Perry"
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
       context: {
@@ -128,13 +125,13 @@ describe("connector for notify endpoint", function test() {
         customerEventMock.done();
         const { body, type } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/first_name") === "Katy");
-        assert(_.get(body, "traits_customerio/last_name") === "Perry");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/first_name"), "Katy");
+        assert.equal(_.get(body, "traits_customerio/last_name"), "Perry");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/email") === "foo@test.com");
-        assert(_.get(body, "traits_customerio/id") === "54321");
-        assert(Object.keys(body).length === 5);
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@test.com");
+        assert.equal(_.get(body, "traits_customerio/id"), "54321");
+        assert.equal(Object.keys(body).length, 5);
 
         done();
       });
@@ -143,8 +140,8 @@ describe("connector for notify endpoint", function test() {
 
   it("should not send user if he was already sent", (done) => {
     customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
-      firstName: "Olivia",
-      lastName: "Wilde"
+      first_name: "Olivia",
+      last_name: "Wilde"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -164,7 +161,7 @@ describe("connector for notify endpoint", function test() {
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       minihull.on("incoming.request", () => {
-        done("incoming request should not happen");
+        done("incoming request should not happen !");
       });
     });
 
@@ -227,7 +224,7 @@ describe("connector for notify endpoint", function test() {
     });
   });
 
-  it("should send only email and created_at attributes if sync_fields_to_customerio does not contains other fields", (done) => {
+  it("should send only email and created_at attributes if synchronized_attributes does not contains other fields", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", {});
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -240,14 +237,32 @@ describe("connector for notify endpoint", function test() {
         createCustomerNock.done();
         const { body, type } = req.body.batch[0];
 
-        assert(type === "traits");
-        assert(_.get(body, "traits_customerio/email") === "foo@test2.com");
+        assert.equal(type, "traits");
+        assert.equal(_.get(body, "traits_customerio/email"), "foo@test2.com");
         assert(_.get(body, "traits_customerio/created_at"));
-        assert(_.get(body, "traits_customerio/id") === "34567");
-        assert(Object.keys(body).length === 3);
+        assert.equal(_.get(body, "traits_customerio/id"), "34567");
+        assert.equal(Object.keys(body).length, 3);
 
         done();
       });
+    });
+  });
+
+  it("should", (done) => {
+    const badScenarioNock = customerioMock.setUpCreateUserBadScenarioNock("34567", "foo@test2.com", {});
+
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
+      changes: {},
+      events: [],
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
+    }).then(() => {
+      // TODO CHECK THAT WE DO NOT RETURN 500 BUT 200 (BECAUSE WE DO)
+
+      setTimeout(() => {
+        badScenarioNock.done();
+        done();
+      }, 1500);
     });
   });
 });
