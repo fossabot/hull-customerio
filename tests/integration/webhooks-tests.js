@@ -48,7 +48,7 @@ describe("Connector for webhooks endpoint", function test() {
   const token = jwt.encode(config, "1234");
 
   it("should track email events in correct form", (done) => {
-    axios.post(`http://localhost:8000/webhooks?token=${token}`, { data:
+    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
       { campaign_id: "1",
         customer_id: "example_customer",
         email_address: "example@customer.io",
@@ -81,7 +81,7 @@ describe("Connector for webhooks endpoint", function test() {
   });
 
   it("should not track events if event_type is undefined on our side", (done) => {
-    axios.post(`http://localhost:8000/webhooks?token=${token}`, { data:
+    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
       { campaign_id: "1",
         customer_id: "example_customer",
         email_address: "example@customer.io",
