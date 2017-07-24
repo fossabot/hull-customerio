@@ -2,8 +2,8 @@
 import _ from "lodash";
 
 export default function batchHandler({ ship, service: { syncAgent } }: Object, messages: Array<Object> = []) {
-  if (_.get(ship.private_settings, "enable_user_deletion")) {
-    const filterSegments = _.get(ship.private_settings, "synchronized_segments");
+  if (_.get(ship, "private_settings.enable_user_deletion")) {
+    const filterSegments = _.get(ship, "private_settings.synchronized_segments");
 
     const usersToSend = [];
     const usersToDelete = [];

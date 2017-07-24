@@ -247,4 +247,22 @@ describe("Connector for notify endpoint", function test() {
       });
     });
   });
+
+  it("should", (done) => {
+    const badScenarioNock = customerioMock.setUpCreateUserBadScenarioNock("34567", "foo@test2.com", {});
+
+    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+      user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
+      changes: {},
+      events: [],
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
+    }).then(() => {
+      // TODO CHECK THAT WE DO NOT RETURN 500 BUT 200 (BECAUSE WE DO)
+
+      setTimeout(() => {
+        badScenarioNock.done();
+        done();
+      }, 1500);
+    });
+  });
 });

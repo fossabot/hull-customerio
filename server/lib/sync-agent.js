@@ -14,12 +14,12 @@ export default class SyncAgent {
 
   constructor(ctx: Object, bottleneck: Bottleneck) {
     const { ship, client, metric } = ctx;
-    this.customerioClient = new CustomerioClient(_.get(ship.private_settings, "site_id"), _.get(ship.private_settings, "api_key"));
+    this.customerioClient = new CustomerioClient(_.get(ship, "private_settings.site_id"), _.get(ship, "private_settings.api_key"));
     this.metric = metric;
     this.client = client;
 
-    this.idMapping = _.get(ship.private_settings, "user_id_mapping", "external_id");
-    this.userAttributesMapping = _.get(ship.private_settings, "synchronized_attributes", []);
+    this.idMapping = _.get(ship, "private_settings.user_id_mapping", "external_id");
+    this.userAttributesMapping = _.get(ship, "private_settings.synchronized_attributes", []);
     this.bottleneck = bottleneck;
   }
 

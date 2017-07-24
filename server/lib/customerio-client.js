@@ -60,7 +60,10 @@ export default class CustomerioClient {
         "Content-Type": "application/json"
       },
       data
+    }).then(res => {
+      const status = res.status;
+      if (status !== 200) throw new Error(`Unhandled status code: ${status}`);
+      return res;
     });
   }
-
 }
