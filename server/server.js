@@ -13,9 +13,10 @@ export default function Server(app: express, bottleneck: Bottleneck) {
     res.render("admin.html", { hostname: req.hostname, token: req.hull.token });
   });
 
-  app.use("/webhooks", webhookHandler);
+  app.use(applyAgent(bottleneck));
+  app.use(requireConfiguration);
 
-  app.use(applyAgent(bottleneck), requireConfiguration);
+  app.all("/webhook", webhookHandler);
 
   app.use("/batch", notifHandler({
     userHandlerOptions: {

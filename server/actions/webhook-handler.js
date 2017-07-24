@@ -6,6 +6,10 @@ import eventsMapping from "../mappings/events-mapping";
 
 export default function webhookHandler(req: Request, res: Response) {
   res.send();
+  if (!req.body || !req.body.event_id) {
+    return Promise.resolve();
+  }
+
   const { data: { email_address, customer_id, campaign_id, template_id, subject }, event_type, timestamp, event_id } = req.body;
 
   const eventName = _.get(eventsMapping, event_type);
