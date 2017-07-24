@@ -8,7 +8,7 @@ import applyAgent from "./middlewares/apply-agent";
 import * as actions from "./actions";
 import requireConfiguration from "./middlewares/check-connector-configuration";
 
-export default function Server(app: express, bottleneck: Bottleneck) {
+export default function server(app: express, bottleneck: Bottleneck) {
   app.get("/admin.html", (req, res) => {
     res.render("admin.html", { hostname: req.hostname, token: req.hull.token });
   });

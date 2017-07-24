@@ -1,15 +1,14 @@
 import { Connector } from "hull";
 import express from "express";
 
-import Server from "../../../server/server";
+import server from "../../../server/server";
 import Bottleneck from "bottleneck";
 
 export default function bootstrap() {
-  let app = express();
+  const app = express();
   const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" } });
   connector.setupApp(app);
-  app = Server(app, new Bottleneck(30, 34));
-
+  server(app, new Bottleneck(30, 34));
   connector.startWorker();
   return connector.startApp(app);
 }
