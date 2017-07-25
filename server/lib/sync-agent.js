@@ -32,8 +32,13 @@ export default class SyncAgent {
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
-    // TODO: don't delete already deleted users
-    return Promise.all(users.map(user => this.deleteUser(user)));
+    return Promise.all(users.filter(user => {
+      if (_.has(user, "traits_customerio/deleted_at")) {
+        this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
+        return false;
+      }
+      return true;
+    }).map(user => this.deleteUser(user)));
   }
 
   getUsersCustomerioId(user: Object) {
@@ -82,7 +87,11 @@ export default class SyncAgent {
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.user.success");
         this.metric.increment("ship.outgoing.users", 1);
-        // TODO remove customerio/deleted_at trait
+        if (_.has(user, "traits_customerio/deleted_at")) {
+          return this.client.asUser(userIdent).traits(
+            _.merge({ "customerio/deleted_at": null }, hullUserTraits)
+          );
+        }
         return this.client.asUser(userIdent).traits(
           hullUserTraits
         );
@@ -94,7 +103,7 @@ export default class SyncAgent {
     return this.bottleneck.schedule(this._deleteUser.bind(this), user)
       .then(() => {
         this.client.asUser(user).logger.debug("user.deletion.success");
-        return this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() });
+        return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
       })
       .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err }));
   }

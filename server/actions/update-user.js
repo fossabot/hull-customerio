@@ -1,7 +1,7 @@
 /* @flow */
 import _ from "lodash";
 
-export default function updateUser({ service, ship }: Object, messages: []) {
+export default function updateUser({ client, service, ship }: Object, messages: []) {
   const { syncAgent } = service;
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
     const shouldSendAnonymousEvents = _.has(ship, "private_settings.anonymous_events");
@@ -10,12 +10,18 @@ export default function updateUser({ service, ship }: Object, messages: []) {
 
     const promises = [];
 
-    // TODO: log outgoing.error.skip
-    // FIXME: event name is in `event.event` not in `event.properties.name`:
-    promises.push(events.filter(event => _.includes(eventsFilter, event.properties.name)).reduce((acc, e) => {
-      const usersCustomerioId = _.get(user, _.get(user, "traits_customerio/id"), syncAgent.getUsersCustomerioId(user));
+    promises.push(events.filter(e => {
+      if (!_.includes(eventsFilter, e.event)) {
+        client.asUser(user).logger.info("outgoing.event.skip", {
+          eventName: e.event, reason: "event not included in events_filter private setting"
+        });
+        return false;
+      }
+      return true;
+    }).reduce((acc, e) => {
+      const usersCustomerioId = syncAgent.getUsersCustomerioId(user);
 
-      if (e.event === "page") {
+      if (e.event === "page" && usersCustomerioId) {
         acc.push(syncAgent.sendPageEvent(user, e.context.page, e));
       } else if (usersCustomerioId) {
         const userIdent = { email: user.email };
@@ -34,7 +40,7 @@ export default function updateUser({ service, ship }: Object, messages: []) {
     if (!_.get(changes, "user['traits_customerio/id'][1]", false)) {
       if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {
         promises.push(syncAgent.sendAllUserProperties(user));
-      } else if (userDeletionEnabled && !_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
+      } else if (userDeletionEnabled && _.get(user, "traits_customerio/deleted_at") !== null && _.get(user, "traits_customerio/id")) {
         promises.push(syncAgent.deleteUser(user));
       }
     }
