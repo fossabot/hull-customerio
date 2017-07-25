@@ -32,6 +32,7 @@ export default class SyncAgent {
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
+    // TODO: don't delete already deleted users
     return Promise.all(users.map(user => this.deleteUser(user)));
   }
 
@@ -70,7 +71,7 @@ export default class SyncAgent {
 
     const hullUserTraits = _.mapKeys(
         _.merge({ id: userCustomerioId }, filteredHullUserTraits),
-        ((value, key) => `traits_customerio/${key}`)
+        ((value, key) => `traits_customerio/${key}`) // FIXME: remove `traits_`
       );
 
     return Promise.all(
@@ -80,6 +81,7 @@ export default class SyncAgent {
     )
       .then(() => {
         this.metric.increment("ship.outgoing.users", 1);
+        // TODO remove customerio/deleted_at trait
         return this.client.asUser(userIdent).traits(
           hullUserTraits
         );
@@ -88,7 +90,7 @@ export default class SyncAgent {
 
   deleteUser(user: Object) {
     return this.bottleneck.schedule(this._deleteUser.bind(this), user)
-      .then(() => this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() }));
+      .then(() => this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() })); // FIXME: remove `traits_`
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
