@@ -2,23 +2,25 @@
 import _ from "lodash";
 
 export default function updateUser({ client, service, ship }: Object, messages: []) {
+  const shouldSendAnonymousEvents = _.has(ship, "private_settings.anonymous_events");
+  const eventsFilter = _.get(ship, "private_settings.events_filter", []);
+  const userDeletionEnabled = _.get(ship, "private_settings.enable_user_deletion");
+
+  const filterEvents = (user, e) => {
+    if (!_.includes(eventsFilter, e.event)) {
+      client.asUser(user).logger.info("outgoing.event.skip", {
+        eventName: e.event, reason: "event not included in events_filter private setting"
+      });
+      return false;
+    }
+    return true;
+  };
+
   const { syncAgent } = service;
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
-    const shouldSendAnonymousEvents = _.has(ship, "private_settings.anonymous_events");
-    const eventsFilter = _.get(ship, "private_settings.events_filter", []);
-    const userDeletionEnabled = _.get(ship, "private_settings.enable_user_deletion");
-
     const promises = [];
 
-    promises.push(events.filter(e => {
-      if (!_.includes(eventsFilter, e.event)) {
-        client.asUser(user).logger.info("outgoing.event.skip", {
-          eventName: e.event, reason: "event not included in events_filter private setting"
-        });
-        return false;
-      }
-      return true;
-    }).reduce((acc, e) => {
+    promises.push(events.filter(event => filterEvents(user, event)).reduce((acc, e) => {
       const usersCustomerioId = syncAgent.getUsersCustomerioId(user);
 
       if (e.event === "page" && usersCustomerioId) {
