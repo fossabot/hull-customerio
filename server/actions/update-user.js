@@ -24,13 +24,13 @@ export default function updateUser({ client, service, ship }: Object, messages: 
       const usersCustomerioId = syncAgent.getUsersCustomerioId(user);
 
       if (e.event === "page" && usersCustomerioId) {
-        acc.push(syncAgent.sendPageEvent(user, e.context.page, e));
+        acc.push(syncAgent.sendPageEvent(user, e.properties.url, e));
       } else if (usersCustomerioId) {
         const userIdent = { email: user.email };
         userIdent[syncAgent.getIdMapping()] = usersCustomerioId;
-        acc.push(syncAgent.sendUserEvent(userIdent, e.properties.name, e));
+        acc.push(syncAgent.sendUserEvent(userIdent, e.event, e));
       } else if (shouldSendAnonymousEvents) {
-        acc.push(syncAgent.sendAnonymousEvent(e.properties.name, e));
+        acc.push(syncAgent.sendAnonymousEvent(e.event, e));
       }
 
       return acc;

@@ -3351,40 +3351,36 @@ mimic-fn@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.1.0.tgz#e667783d92e89dbd342818b5230b9d62a672ad18"
 
-mini-application@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/mini-application/-/mini-application-1.0.2.tgz#afa260a6ae35bcea87fa0dd03f228c3cebde4056"
+mini-application@^1.0.4:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/mini-application/-/mini-application-1.0.5.tgz#3f3f39d34dba0bca4212dc11cda71c40c6d1207e"
   dependencies:
     bluebird "^3.5.0"
     body-parser "^1.17.2"
     express "^4.15.3"
-    faker "^4.1.0"
-    lodash-id "^0.14.0"
-    lowdb "^0.16.2"
-    moment "^2.18.1"
-    shelljs "^0.7.7"
-    sinon "^2.3.2"
-    superagent "^3.5.2"
-    superagent-promise-plugin "^3.2.0"
-
-minihull@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/minihull/-/minihull-2.0.0.tgz#04714e4f3195af3effe01cae1ead19b48c42c6d5"
-  dependencies:
-    bluebird "^3.5.0"
-    body-parser "^1.17.2"
-    express "^4.15.3"
-    faker "^4.1.0"
     lodash "^4.17.4"
     lodash-id "^0.14.0"
     lowdb "^0.16.2"
-    mini-application "^1.0.2"
-    moment "^2.18.1"
-    ngrok "^2.2.14"
     shelljs "^0.7.7"
     sinon "^2.3.2"
     superagent "^3.5.2"
     superagent-promise-plugin "^3.2.0"
+  optionalDependencies:
+    faker "^4.1.0"
+    moment "^2.18.1"
+
+minihull@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/minihull/-/minihull-2.0.1.tgz#38c4d2ef5c6f48f50fcb3d26910cbc3b36368d4d"
+  dependencies:
+    bluebird "^3.5.0"
+    faker "^4.1.0"
+    lodash "^4.17.4"
+    lodash-id "^0.14.0"
+    mini-application "^1.0.4"
+    shelljs "^0.7.7"
+  optionalDependencies:
+    ngrok "^2.2.14"
 
 minimatch@^3.0.0, minimatch@^3.0.2, minimatch@^3.0.3, minimatch@^3.0.4:
   version "3.0.4"
