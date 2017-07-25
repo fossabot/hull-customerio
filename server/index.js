@@ -3,7 +3,7 @@ import Hull from "hull";
 import express from "express";
 import Bottleneck from "bottleneck";
 
-import Server from "./server";
+import server from "./server";
 
 const {
   LOG_LEVEL,
@@ -26,13 +26,10 @@ const options = {
   }
 };
 
-let app = express();
-
+const app = express();
+const bottleneck = new Bottleneck(30, 34);
 const connector = new Hull.Connector(options);
 
 connector.setupApp(app);
-
-const bottleneck = new Bottleneck(30, 34);
-
-app = Server(app, bottleneck);
+server(app, bottleneck);
 connector.startApp(app);
