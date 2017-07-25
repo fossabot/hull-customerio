@@ -32,6 +32,7 @@ export default class SyncAgent {
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
+    // TODO: don't delete already deleted users
     return Promise.all(users.map(user => this.deleteUser(user)));
   }
 
@@ -69,9 +70,10 @@ export default class SyncAgent {
     filteredHullUserTraits = _.merge({ email: userIdent.email }, filteredHullUserTraits);
 
     const hullUserTraits = _.mapKeys(
-      _.merge({ id: userCustomerioId }, filteredHullUserTraits),
-      ((value, key) => `traits_customerio/${key}`)
-    );
+        _.merge({ id: userCustomerioId }, filteredHullUserTraits),
+        ((value, key) => `customerio/${key}`)
+      );
+
 
     return Promise.all(
       (_.chunk(_.toPairs(filteredHullUserTraits), 30))
@@ -81,6 +83,7 @@ export default class SyncAgent {
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.user.success");
         this.metric.increment("ship.outgoing.users", 1);
+        // TODO remove customerio/deleted_at trait
         return this.client.asUser(userIdent).traits(
           hullUserTraits
         );

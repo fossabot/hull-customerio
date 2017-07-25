@@ -10,6 +10,8 @@ export default function updateUser({ service, ship }: Object, messages: []) {
 
     const promises = [];
 
+    // TODO: log outgoing.error.skip
+    // FIXME: event name is in `event.event` not in `event.properties.name`:
     promises.push(events.filter(event => _.includes(eventsFilter, event.properties.name)).reduce((acc, e) => {
       const usersCustomerioId = _.get(user, _.get(user, "traits_customerio/id"), syncAgent.getUsersCustomerioId(user));
 
