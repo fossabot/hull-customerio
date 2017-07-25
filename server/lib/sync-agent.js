@@ -36,7 +36,7 @@ export default class SyncAgent {
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
-    return Promise.all(users.filter(this.filterDeletion).map(user => this.deleteUser(user)));
+    return Promise.all(users.filter(this.filterDeletion.bind(this)).map(user => this.deleteUser(user)));
   }
 
   getUsersCustomerioId(user: Object) {
