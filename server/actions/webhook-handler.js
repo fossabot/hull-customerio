@@ -34,6 +34,6 @@ export default function webhookHandler(req: Request, res: Response) {
     event_id,
     created_at: timestamp
   };
-
+  console.log(eventName, eventPayload, context);
   return asUser.track(eventName, eventPayload, context).then(() => req.hull.metric.increment("ship.incoming.events", 1));
 }

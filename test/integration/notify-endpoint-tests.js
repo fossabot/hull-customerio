@@ -82,11 +82,12 @@ describe("Connector for notify endpoint", function test() {
       },
       properties: {
         name: "Page Event",
-        some_property: "test"
+        some_property: "test",
+        url: "http://www.google.com"
       },
       event: "page"
     });
-    const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "Custom Event", {
+    const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "custom", {
       event: "custom",
       context: {
         context_property: "testify"
@@ -106,7 +107,8 @@ describe("Connector for notify endpoint", function test() {
         },
         properties: {
           name: "Page Event",
-          some_property: "test"
+          some_property: "test",
+          url: "http://www.google.com"
         }
       }, {
         event: "custom",
@@ -193,7 +195,7 @@ describe("Connector for notify endpoint", function test() {
   });
 
   it("should send anonymous event to customer.io", (done) => {
-    const anonymousEventNock = customerioMock.setUpSendAnonymousEventNock("Anonymous Event", {
+    const anonymousEventNock = customerioMock.setUpSendAnonymousEventNock("anonymous", {
       event: "anonymous",
       context: {
         some_field: "testing"
