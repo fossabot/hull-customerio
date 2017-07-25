@@ -31,14 +31,17 @@ export default class SyncAgent {
     return Promise.all(users.map(user => this.sendAllUserProperties(user)));
   }
 
+  filterDeletion(user: Object) {
+    if (_.has(user, "traits_customerio/deleted_at")) {
+      this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
+      return false;
+    }
+    return true;
+  }
+
+
   deleteBatchOfUsers(users: Array<Object>) {
-    return Promise.all(users.filter(user => {
-      if (_.has(user, "traits_customerio/deleted_at")) {
-        this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
-        return false;
-      }
-      return true;
-    }).map(user => this.deleteUser(user)));
+    return Promise.all(users.filter(this.filterDeletion).map(user => this.deleteUser(user)));
   }
 
   getUsersCustomerioId(user: Object) {
@@ -75,9 +78,9 @@ export default class SyncAgent {
     filteredHullUserTraits = _.merge({ email: userIdent.email }, filteredHullUserTraits);
 
     const hullUserTraits = _.mapKeys(
-        _.merge({ id: userCustomerioId }, filteredHullUserTraits),
-        ((value, key) => `customerio/${key}`)
-      );
+      _.merge({ id: userCustomerioId }, filteredHullUserTraits),
+      ((value, key) => `customerio/${key}`)
+    );
 
     return Promise.all(
       (_.chunk(_.toPairs(filteredHullUserTraits), 30))
@@ -104,11 +107,6 @@ export default class SyncAgent {
       .then(() => {
         this.client.asUser(user).logger.debug("user.deletion.success");
         return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
-      })
-      .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err }));
-      .then(() => {
-        this.client.asUser(user).logger.debug("user.deletion.success");
-        return this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() });
       })
       .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err }));
   }
