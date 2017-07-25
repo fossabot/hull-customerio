@@ -1,5 +1,6 @@
 /* @flow */
 import axios from "axios";
+import Bottleneck from "bottleneck";
 
 export default class CustomerioClient {
   urlPrefix: string;
@@ -7,13 +8,15 @@ export default class CustomerioClient {
     username: string;
     password: string;
   };
+  bottleneck: Bottleneck;
 
-  constructor(siteId: string, apiKey: string) {
+  constructor(siteId: string, apiKey: string, bottleneck: Bottleneck) {
     this.urlPrefix = "https://track.customer.io/api/v1";
     this.auth = {
       username: siteId,
       password: apiKey
     };
+    this.bottleneck = bottleneck;
   }
 
   isConfigured() {
@@ -21,15 +24,15 @@ export default class CustomerioClient {
   }
 
   identify(userId: string, attributes: Object) {
-    return this.request(`${this.urlPrefix}/customers/${userId}`, "put", attributes);
+    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}`, "put", attributes);
   }
 
   deleteUser(userId: string) {
-    return this.request(`${this.urlPrefix}/customers/${userId}`, "delete");
+    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}`, "delete");
   }
 
   sendPageViewEvent(userId: string, page: string, eventData: Object) {
-    return this.request(`${this.urlPrefix}/customers/${userId}/events`, "post", {
+    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}/events`, "post", {
       type: "page",
       name: page,
       data: eventData
@@ -37,14 +40,14 @@ export default class CustomerioClient {
   }
 
   sendCustomerEvent(userId: string, eventName: string, eventData: Object) {
-    return this.request(`${this.urlPrefix}/customers/${userId}/events`, "post", {
+    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}/events`, "post", {
       name: eventName,
       data: eventData
     });
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
-    return this.request(`${this.urlPrefix}/events`, "post", {
+    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/events`, "post", {
       name: eventName,
       data: eventData
     });

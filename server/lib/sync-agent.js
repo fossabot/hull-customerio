@@ -1,6 +1,5 @@
 /* @flow */
 import _ from "lodash";
-import Bottleneck from "bottleneck";
 import moment from "moment";
 import CustomerioClient from "./customerio-client";
 
@@ -9,18 +8,15 @@ export default class SyncAgent {
   metric: Object;
   client: Object;
   idMapping: string;
-  bottleneck: Bottleneck;
   userAttributesMapping: Array<string>;
 
-  constructor(ctx: Object, bottleneck: Bottleneck) {
-    const { ship, client, metric } = ctx;
-    this.customerioClient = new CustomerioClient(_.get(ship, "private_settings.site_id"), _.get(ship, "private_settings.api_key"));
+  constructor({ ship, client, metric }: Object, customerioClient: CustomerioClient) {
+    this.customerioClient = customerioClient;
     this.metric = metric;
     this.client = client;
 
     this.idMapping = _.get(ship, "private_settings.user_id_mapping", "external_id");
     this.userAttributesMapping = _.get(ship, "private_settings.synchronized_attributes", []);
-    this.bottleneck = bottleneck;
   }
 
   isConfigured() {
@@ -38,7 +34,6 @@ export default class SyncAgent {
     }
     return true;
   }
-
 
   deleteBatchOfUsers(users: Array<Object>) {
     return Promise.all(users.filter(this.filterDeletion).map(user => this.deleteUser(user)));
@@ -85,8 +80,11 @@ export default class SyncAgent {
     return Promise.all(
       (_.chunk(_.toPairs(filteredHullUserTraits), 30))
         .map(_.fromPairs)
-        .map(userData => this.bottleneck.schedule(this._sendUsersProperties.bind(this), userCustomerioId, userData))
-    )
+        .map(userData => {
+          this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userData).length });
+          return this.customerioClient.identify(userCustomerioId, userData);
+        }
+    ))
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.user.success");
         this.metric.increment("ship.outgoing.users", 1);
@@ -103,7 +101,14 @@ export default class SyncAgent {
   }
 
   deleteUser(user: Object) {
-    return this.bottleneck.schedule(this._deleteUser.bind(this), user)
+    const id = this.getUsersCustomerioId(user);
+
+    if (!id) {
+      this.client.logger.debug("user.deletion.skip", { user, reason: "Missing id" });
+      return Promise.resolve();
+    }
+
+    return this.customerioClient.deleteUser(id)
       .then(() => {
         this.client.asUser(user).logger.debug("user.deletion.success");
         return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
@@ -112,7 +117,7 @@ export default class SyncAgent {
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.customerioClient.sendAnonymousEvent.bind(this.customerioClient), eventName, eventData)
+    return this.customerioClient.sendAnonymousEvent(eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
         return this.metric.increment("ship.outgoing.events", 1);
@@ -128,7 +133,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    return this.bottleneck.schedule(this.customerioClient.sendPageViewEvent.bind(this.customerioClient), id, page, event)
+    return this.customerioClient.sendPageViewEvent(id, page, event)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
@@ -144,43 +149,11 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    return this.bottleneck.schedule(this.customerioClient.sendCustomerEvent.bind(this.customerioClient), id, eventName, eventData)
+    return this.customerioClient.sendCustomerEvent(id, eventName, eventData)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
       })
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err }));
-  }
-
-  /**
-   * Allows to delete user from customer.io
-   * This method should be called only with this.bottleneck.schedule(...)
-   * @param userIdent
-   * @returns {Promise}
-   * @private
-   */
-
-  _deleteUser(userIdent: Object) {
-    const id = this.getUsersCustomerioId(userIdent);
-
-    if (!id) {
-      this.client.logger.debug("user.deletion.skip", { userIdent, reason: "Missing id" });
-      return Promise.resolve();
-    }
-
-    return this.customerioClient.deleteUser(id);
-  }
-
-  /**
-   * Allows to send user properties to customer.io
-   * This method should be called only with this.bottleneck.schedule(...)
-   * @param userId
-   * @param userAttributes
-   * @private
-   */
-
-  _sendUsersProperties(userId: string, userAttributes: Object) {
-    this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userAttributes).length });
-    return this.customerioClient.identify(userId, userAttributes);
   }
 }

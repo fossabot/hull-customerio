@@ -1,7 +1,7 @@
 /* @flow */
 import Hull from "hull";
 import express from "express";
-import Bottleneck from "bottleneck";
+import { Cluster } from "bottleneck";
 
 import server from "./server";
 
@@ -27,9 +27,9 @@ const options = {
 };
 
 const app = express();
-const bottleneck = new Bottleneck(30, 34);
+const bottleneckCluster = new Cluster(30, 34);
 const connector = new Hull.Connector(options);
 
 connector.setupApp(app);
-server(app, bottleneck);
+server(app, bottleneckCluster);
 connector.startApp(app);
