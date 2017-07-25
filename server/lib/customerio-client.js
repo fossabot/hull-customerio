@@ -24,15 +24,15 @@ export default class CustomerioClient {
   }
 
   identify(userId: string, attributes: Object) {
-    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}`, "put", attributes);
+    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}`, "put", attributes);
   }
 
   deleteUser(userId: string) {
-    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}`, "delete");
+    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}`, "delete");
   }
 
   sendPageViewEvent(userId: string, page: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}/events`, "post", {
+    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}/events`, "post", {
       type: "page",
       name: page,
       data: eventData
@@ -40,14 +40,14 @@ export default class CustomerioClient {
   }
 
   sendCustomerEvent(userId: string, eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/customers/${userId}/events`, "post", {
+    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}/events`, "post", {
       name: eventName,
       data: eventData
     });
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request, `${this.urlPrefix}/events`, "post", {
+    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/events`, "post", {
       name: eventName,
       data: eventData
     });
