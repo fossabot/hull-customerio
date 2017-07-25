@@ -67,7 +67,7 @@ export default class SyncAgent {
 
     let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
 
-    if (!alreadySetCustomerId) {
+    if (!alreadySetCustomerId || _.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
     filteredHullUserTraits = _.merge({ email: userIdent.email }, filteredHullUserTraits);
