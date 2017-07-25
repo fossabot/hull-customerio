@@ -63,10 +63,10 @@ describe("Connector should respect API limits", function test() {
         const requestData = req.body.batch[0];
 
         assert(requestData.type === "traits");
-        assert.equal(_.get(requestData.body, "traits_customerio/email"), "333@test.com");
-        assert(_.get(requestData.body, "traits_customerio/created_at"));
-        assert.equal(_.get(requestData.body, "traits_customerio/id"), "33333");
-        range.forEach(idx => assert(_.get(requestData.body, `traits_customerio/field_${idx}`) === idx));
+        assert.equal(_.get(requestData.body, "customerio/email"), "333@test.com");
+        assert(_.get(requestData.body, "customerio/created_at"));
+        assert.equal(_.get(requestData.body, "customerio/id"), "33333");
+        range.forEach(idx => assert(_.get(requestData.body, `customerio/field_${idx}`) === idx));
 
         done();
       });

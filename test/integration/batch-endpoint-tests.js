@@ -69,19 +69,19 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
         const johnSnowBatch = req.body.batch[1];
 
         assert.equal(jamesVeitchBatch.type, "traits");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/first_name"), "James");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/last_name"), "Veitch");
-        assert(_.get(jamesVeitchBatch.body, "traits_customerio/created_at"));
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/email"), "222@test.com");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/id"), "22222");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/first_name"), "James");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/last_name"), "Veitch");
+        assert(_.get(jamesVeitchBatch.body, "customerio/created_at"));
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/email"), "222@test.com");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
         assert.equal(Object.keys(jamesVeitchBatch.body).length, 5);
 
         assert.equal(johnSnowBatch.type, "traits");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/first_name"), "John");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/last_name"), "Snow");
-        assert(_.get(johnSnowBatch.body, "traits_customerio/created_at"));
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/email"), "444@test.com");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/id"), "44444");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/first_name"), "John");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/last_name"), "Snow");
+        assert(_.get(johnSnowBatch.body, "customerio/created_at"));
+        assert.equal(_.get(johnSnowBatch.body, "customerio/email"), "444@test.com");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/id"), "44444");
         assert.equal(Object.keys(johnSnowBatch.body).length, 5);
 
         done();
@@ -111,18 +111,18 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
       minihull.on("incoming.request", (req) => {
         const data = req.body.batch[0];
 
-        if (_.get(data.body, "traits_customerio/id") === "22222") {
+        if (_.get(data.body, "customerio/id") === "22222") {
           assert.equal(data.type, "traits");
-          assert.equal(_.get(data.body, "traits_customerio/first_name"), "James");
-          assert.equal(_.get(data.body, "traits_customerio/last_name"), "First");
-          assert(_.get(data.body, "traits_customerio/created_at"));
-          assert.equal(_.get(data.body, "traits_customerio/email"), "222@test.com");
-          assert.equal(_.get(data.body, "traits_customerio/id"), "22222");
+          assert.equal(_.get(data.body, "customerio/first_name"), "James");
+          assert.equal(_.get(data.body, "customerio/last_name"), "First");
+          assert(_.get(data.body, "customerio/created_at"));
+          assert.equal(_.get(data.body, "customerio/email"), "222@test.com");
+          assert.equal(_.get(data.body, "customerio/id"), "22222");
           assert.equal(Object.keys(data.body).length, 5);
           firstCheck = true;
         } else {
           assert.equal(data.type, "traits");
-          assert(_.get(data.body, "traits_customerio/deleted_at"));
+          assert(_.get(data.body, "customerio/deleted_at"));
           assert.equal(Object.keys(data.body).length, 1);
           secondCheck = true;
         }
@@ -201,19 +201,19 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
         const johnSnowBatch = req.body.batch[1];
 
         assert.equal(jamesVeitchBatch.type, "traits");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/first_name"), "James");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/last_name"), "Veitch");
-        assert(_.get(jamesVeitchBatch.body, "traits_customerio/created_at"));
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/email"), "222@test.com");
-        assert.equal(_.get(jamesVeitchBatch.body, "traits_customerio/id"), "22222");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/first_name"), "James");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/last_name"), "Veitch");
+        assert(_.get(jamesVeitchBatch.body, "customerio/created_at"));
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/email"), "222@test.com");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
         assert.equal(Object.keys(jamesVeitchBatch.body).length, 5);
 
         assert.equal(johnSnowBatch.type, "traits");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/first_name"), "John");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/last_name"), "Snow");
-        assert(_.get(johnSnowBatch.body, "traits_customerio/created_at"));
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/email"), "444@test.com");
-        assert.equal(_.get(johnSnowBatch.body, "traits_customerio/id"), "44444");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/first_name"), "John");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/last_name"), "Snow");
+        assert(_.get(johnSnowBatch.body, "customerio/created_at"));
+        assert.equal(_.get(johnSnowBatch.body, "customerio/email"), "444@test.com");
+        assert.equal(_.get(johnSnowBatch.body, "customerio/id"), "44444");
         assert.equal(Object.keys(johnSnowBatch.body).length, 5);
 
         done();
