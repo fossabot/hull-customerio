@@ -17,7 +17,7 @@ describe("Connector for webhooks endpoint", function test() {
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "lastName"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
+    events_filter: ["page", "custom", "anonymous"]
   };
 
   beforeEach((done) => {
@@ -55,7 +55,7 @@ describe("Connector for webhooks endpoint", function test() {
         email_id: "example_email",
         subject: "Example Email",
         template_id: "2" },
-      event_id: "abc123",
+      event_id: "abcd123",
       event_type: "email_sent",
       timestamp: 1500635446 }
     );
@@ -71,7 +71,7 @@ describe("Connector for webhooks endpoint", function test() {
         assert.equal(body.properties.subject, "Example Email");
         assert.equal(body.properties.template_id, "2");
         assert.equal(body.properties.user.email, "example@customer.io");
-        assert.equal(body.event_id, "abc123");
+        assert.equal(body.event_id, "abcd123");
         assert.equal(body.created_at, 1500635446);
         assert.equal(body.event, "Email Sent");
 
@@ -81,6 +81,31 @@ describe("Connector for webhooks endpoint", function test() {
   });
 
   it("should not track events if event_type is undefined on our side", (done) => {
+    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
+      { campaign_id: "1",
+        customer_id: "example_customer",
+        email_address: "example@customer.io",
+        email_id: "example_email",
+        subject: "Example Email",
+        template_id: "2" },
+      event_id: "abcd123",
+      event_type: "email_that_we_did_not_specified",
+      timestamp: 1500635446 }
+    );
+
+    minihull.on("incoming.request", (req) => {
+      const batch = req.body.batch;
+      if (batch) {
+        done("track events should not happen !");
+      }
+    });
+
+    setTimeout(() => {
+      done();
+    }, 1500);
+  });
+
+  it("should not track events if customerio sent test event", (done) => {
     axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
       { campaign_id: "1",
         customer_id: "example_customer",
