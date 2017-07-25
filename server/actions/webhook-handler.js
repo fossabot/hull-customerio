@@ -12,6 +12,11 @@ export default function webhookHandler(req: Request, res: Response) {
 
   const { data: { email_address, customer_id, campaign_id, template_id, subject }, event_type, timestamp, event_id } = req.body;
 
+  if (event_id === "abc123") {
+    req.hull.client.logger.debug("webhook endpoint subscribed");
+    return Promise.resolve();
+  }
+
   const eventName = _.get(eventsMapping, event_type);
   if (!eventName) {
     return Promise.resolve();
