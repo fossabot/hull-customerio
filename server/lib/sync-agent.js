@@ -106,6 +106,11 @@ export default class SyncAgent {
         return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
       })
       .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err }));
+      .then(() => {
+        this.client.asUser(user).logger.debug("user.deletion.success");
+        return this.client.asUser(user).traits({ "traits_customerio/deleted_at": moment().format() });
+      })
+      .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err }));
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
