@@ -41,7 +41,7 @@ export default function updateUser({ client, service, ship }: Object, messages: 
 
     if (!_.get(changes, "user['traits_customerio/id'][1]", false)) {
       if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {
-        promises.push(syncAgent.sendAllUserProperties(user));
+        promises.push(syncAgent.sendAllUserProperties(user, segments));
       } else if (userDeletionEnabled && _.get(user, "traits_customerio/deleted_at") !== null && _.get(user, "traits_customerio/id")) {
         promises.push(syncAgent.deleteUser(user));
       }

@@ -23,8 +23,8 @@ export default class SyncAgent {
     return this.customerioClient.isConfigured();
   }
 
-  sendBatchOfUsers(users: Array<Object>) {
-    return Promise.all(users.map(user => this.sendAllUserProperties(user)));
+  sendBatchOfUsers(messages: Array<Object>) {
+    return Promise.all(messages.map(message => this.sendAllUserProperties(message.user, message.segments)));
   }
 
   filterDeletion(user: Object) {
@@ -47,7 +47,7 @@ export default class SyncAgent {
     return this.idMapping;
   }
 
-  sendAllUserProperties(user: Object) {
+  sendAllUserProperties(user: Object, segments: Array<Object>) {
     const email = _.get(user, "email");
     if (!email) {
       this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing email" });
@@ -70,10 +70,10 @@ export default class SyncAgent {
     if (!alreadySetCustomerId || _.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
-    filteredHullUserTraits = _.merge({ email: userIdent.email }, filteredHullUserTraits);
+    filteredHullUserTraits = _.merge({ email: userIdent.email, hull_segments: segments.map(s => s.name).join(", ") }, filteredHullUserTraits);
 
     const hullUserTraits = _.mapKeys(
-      _.merge({ id: userCustomerioId }, filteredHullUserTraits),
+      _.merge({ id: userCustomerioId }, _.omit(filteredHullUserTraits, "hull_segments")),
       ((value, key) => `customerio/${key}`)
     );
 

@@ -7,6 +7,7 @@ import CustomerioClient from "../lib/customerio-client";
 
 export default function applyAgent(bottleneckCluster: Cluster) {
   return (req: Request, res: Response, next: Next) => {
+    req.hull = req.hull || {};
     req.hull.service = req.hull.service || {};
 
     const bottleneck = bottleneckCluster.key(req.hull.ship.id);

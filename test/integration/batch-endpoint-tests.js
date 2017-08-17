@@ -45,12 +45,14 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
   it("should send batch of users to customer.io", (done) => {
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "Veitch"
+      last_name: "Veitch",
+      hull_segments: "testSegment"
     });
 
     const johnSnowCustomerNock = customerioMock.setUpIdentifyCustomerNock("44444", "444@test.com", {
       first_name: "John",
-      last_name: "Snow"
+      last_name: "Snow",
+      hull_segments: "testSegment"
     });
 
     minihull.stubBatch([{
@@ -67,12 +69,14 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
         johnSnowCustomerNock.done();
         const jamesVeitchBatch = req.body.batch[0];
         const johnSnowBatch = req.body.batch[1];
+        console.log(johnSnowBatch.body);
 
         assert.equal(jamesVeitchBatch.type, "traits");
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/first_name"), "James");
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/last_name"), "Veitch");
         assert(_.get(jamesVeitchBatch.body, "customerio/created_at"));
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/email"), "222@test.com");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
         assert.equal(Object.keys(jamesVeitchBatch.body).length, 5);
 
@@ -92,7 +96,8 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
   it("should send batch of users to customer.io and delete users that do not match filtered segments", (done) => {
     const firstCustomerCreateNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "First"
+      last_name: "First",
+      hull_segments: "testSegment"
     });
 
     const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("44444");
@@ -177,12 +182,14 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
   it("should send batch of users to customer.io", (done) => {
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "Veitch"
+      last_name: "Veitch",
+      hull_segments: "testSegment"
     });
 
     const johnSnowCustomerNock = customerioMock.setUpIdentifyCustomerNock("44444", "444@test.com", {
       first_name: "John",
-      last_name: "Snow"
+      last_name: "Snow",
+      hull_segments: "testSegment"
     });
 
     minihull.stubBatch([{

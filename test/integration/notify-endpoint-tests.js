@@ -45,7 +45,8 @@ describe("Connector for notify endpoint", function test() {
   it("should send users to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
       first_name: "James",
-      last_name: "Bond"
+      last_name: "Bond",
+      hull_segments: "testSegment"
     });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
@@ -74,7 +75,8 @@ describe("Connector for notify endpoint", function test() {
   it("should send events to customer.io", (done) => {
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
       first_name: "Katy",
-      last_name: "Perry"
+      last_name: "Perry",
+      hull_segments: "testSegment"
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
       context: {
@@ -227,7 +229,7 @@ describe("Connector for notify endpoint", function test() {
   });
 
   it("should send only email and created_at attributes if synchronized_attributes does not contains other fields", (done) => {
-    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", {});
+    const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", { hull_segments: "testSegment" });
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
