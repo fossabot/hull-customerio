@@ -219,7 +219,7 @@ describe("Connector for notify endpoint", function test() {
           name: "Anonymous Event"
         }
       }],
-      segments: []
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       setTimeout(() => {
         anonymousEventNock.done();

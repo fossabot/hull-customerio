@@ -70,7 +70,7 @@ export default class SyncAgent {
     if (!alreadySetCustomerId || _.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
-    filteredHullUserTraits = _.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits);
+    filteredHullUserTraits = _.merge({ email, hull_segments: segments.map(s => s.name).join(", ") }, filteredHullUserTraits);
     const hullUserTraits = _.mapKeys(
       _.merge({ id: userCustomerioId }, _.omit(filteredHullUserTraits, "hull_segments")),
       ((value, key) => `customerio/${key}`)

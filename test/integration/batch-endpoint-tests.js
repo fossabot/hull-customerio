@@ -18,7 +18,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"],
+    events_filter: ["page", "custom", "anonymous"],
     enable_user_deletion: "true",
   };
 
@@ -69,7 +69,6 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
         johnSnowCustomerNock.done();
         const jamesVeitchBatch = req.body.batch[0];
         const johnSnowBatch = req.body.batch[1];
-        console.log(johnSnowBatch.body);
 
         assert.equal(jamesVeitchBatch.type, "traits");
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/first_name"), "James");
@@ -156,7 +155,7 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
+    events_filter: ["page", "custom", "anonymous"]
   };
 
   beforeEach((done) => {
