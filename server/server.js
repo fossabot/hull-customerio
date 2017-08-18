@@ -14,9 +14,10 @@ export default function server(app: express, bottleneckCluster: Cluster) {
   });
 
   app.use(applyAgent(bottleneckCluster));
-  app.use(requireConfiguration);
 
   app.all("/webhook", webhookHandler);
+
+  app.use(requireConfiguration);
 
   app.use("/batch", notifHandler({
     userHandlerOptions: {

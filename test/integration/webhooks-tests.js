@@ -16,7 +16,7 @@ describe("Connector for webhooks endpoint", function test() {
     user_id_mapping: "test_id",
     site_id: "1",
     api_key: "2",
-    synchronized_attributes: ["first_name", "lastName"],
+    synchronized_attributes: [],
     events_filter: ["page", "custom", "anonymous"]
   };
 
