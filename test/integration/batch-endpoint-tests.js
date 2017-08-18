@@ -92,6 +92,27 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
   });
 
+  it("should not send user if he was never sent to customer.io", (done) => {
+    const johnSnowCustomerNock = customerioMock.setUpDeleteCustomerNock("44444");
+
+    minihull.stubBatch([{
+      email: "444@test.com", id: "44444", external_id: "1", anonymous_id: "2", first_name: "John", last_name: "Snow",
+      segment_ids: []
+    }]);
+
+    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
+      minihull.on("incoming.request", (req) => {
+        if (req && req.body && req.body.batch && req.body.batch[0] && req.body.batch[0].type === "traits") {
+          done(Error("user should not be sent to platform cause we should skip him"));
+        }
+      });
+    });
+    setTimeout(() => {
+      assert(!johnSnowCustomerNock.isDone());
+      done();
+    }, 1500);
+  });
+
   it("should send batch of users to customer.io and delete users that do not match filtered segments", (done) => {
     const firstCustomerCreateNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
@@ -99,13 +120,14 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
       hull_segments: "testSegment"
     });
 
-    const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("44444");
+    const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("55555");
 
     minihull.stubBatch([{
       email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "First",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "44444", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second"
+      email: "444@test.com", id: "55555", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second",
+      "traits_customerio/id": "55555"
     }]);
 
     let firstCheck = false;
@@ -131,16 +153,16 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
           secondCheck = true;
         }
       });
-    });
 
-    setTimeout(() => {
-      firstCustomerCreateNock.done();
-      secondCustomerDeleteNock.done();
-      if (!firstCheck) done("first check not satisfied");
-      else if (!secondCheck) done("second check not satisfied");
-      else done();
-    }, 2500);
-  }).timeout(3000);
+      setTimeout(() => {
+        firstCustomerCreateNock.done();
+        secondCustomerDeleteNock.done();
+        if (!firstCheck) done("first check not satisfied");
+        else if (!secondCheck) done("second check not satisfied");
+        else done();
+      }, 3500);
+    });
+  }).timeout(4000);
 });
 
 describe("Connector for batch endpoint if user deletion is disabled", function test() {

@@ -32,6 +32,12 @@ export default class SyncAgent {
       this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
       return false;
     }
+
+    if (!_.has(user, "traits_customerio/id")) {
+      this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user was never sent to customer.io" });
+      return false;
+    }
+
     return true;
   }
 
@@ -40,7 +46,7 @@ export default class SyncAgent {
   }
 
   getUsersCustomerioId(user: Object) {
-    return _.get(user, this.idMapping, _.get(user, "traits_customerio/id"));
+    return _.get(user, "traits_customerio/id", _.get(user, this.idMapping));
   }
 
   getIdMapping() {
