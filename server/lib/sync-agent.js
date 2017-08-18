@@ -28,12 +28,12 @@ export default class SyncAgent {
   }
 
   filterDeletion(user: Object) {
-    if (_.has(user, "traits_customerio/deleted_at")) {
+    if (_.get(user, "traits_customerio/deleted_at")) {
       this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
       return false;
     }
 
-    if (!_.has(user, "traits_customerio/id")) {
+    if (!_.get(user, "traits_customerio/id")) {
       this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user was never sent to customer.io" });
       return false;
     }

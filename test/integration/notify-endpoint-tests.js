@@ -99,6 +99,7 @@ describe("Connector for notify endpoint", function test() {
       }
     });
 
+    let check = false;
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
       changes: {},
@@ -124,9 +125,6 @@ describe("Connector for notify endpoint", function test() {
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
       minihull.on("incoming.request", (req) => {
-        createCustomerNock.done();
-        pageViewEventsMock.done();
-        customerEventMock.done();
         const { body, type } = req.body.batch[0];
 
         assert.equal(type, "traits");
@@ -137,10 +135,20 @@ describe("Connector for notify endpoint", function test() {
         assert.equal(_.get(body, "customerio/id"), "54321");
         assert.equal(Object.keys(body).length, 5);
 
-        done();
+        check = true;
       });
     });
-  });
+
+    setTimeout(() => {
+      if (!check) {
+        done(Error("check not satisfied"));
+      }
+      createCustomerNock.done();
+      customerEventMock.done();
+      pageViewEventsMock.done();
+      done();
+    }, 2000);
+  }).timeout(2500);
 
   it("should not send user if he was already sent", (done) => {
     customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
