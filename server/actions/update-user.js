@@ -18,17 +18,11 @@ export default function updateUser({ client, service, ship }: Object, messages: 
     }
 
     if (_.intersection(segments.map(s => s.id), filterSegments).length === 0) {
-      asUser.logger.info("outgoing.event.skip", {
-        eventName: e.event
-      });
       return false;
     }
 
     if (_.get(user, "traits_customerio/deleted_at")) {
-      client.asUser(user).logger.info("outgoing.event.skip", {
-        eventName: e.event,
-        reason: "User was deleted"
-      });
+      client.asUser(user).logger.info("outgoing.event.skip", { eventName: e.event, reason: "User was deleted" });
       return false;
     }
     return true;
