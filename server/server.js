@@ -1,7 +1,7 @@
 /* @flow */
 import express from "express";
 import { Cluster } from "bottleneck";
-import { notifHandler } from "hull/lib/utils";
+import { notifHandler, smartNotifierHandler } from "hull/lib/utils";
 
 import webhookHandler from "./actions/webhook-handler";
 import applyAgent from "./middlewares/apply-agent";
@@ -15,7 +15,7 @@ export default function server(app: express, bottleneckCluster: Cluster) {
 
   app.use(applyAgent(bottleneckCluster));
 
-  app.all("/webhook", webhookHandler);
+  app.post("/webhook", webhookHandler);
 
   app.use(requireConfiguration);
 
@@ -36,6 +36,20 @@ export default function server(app: express, bottleneckCluster: Cluster) {
       "user:update": actions.updateUser
     }
   }));
+
+  app.use("/smart-notifier", smartNotifierHandler({
+    handlers: {
+      "user:update": (ctx: Object, messages: Array<Object>) => {
+        ctx.smartNotifierResponse.setFlowControl({
+          type: "next",
+          in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
+          size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
+        });
+        return actions.updateUser(ctx, messages);
+      }
+    }
+  }));
+
 
   return app;
 }

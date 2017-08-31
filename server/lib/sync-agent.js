@@ -91,16 +91,15 @@ export default class SyncAgent {
         }
     ))
       .then(() => {
-        this.client.asUser(userIdent).logger.info("outgoing.user.success");
+        const asUser = this.client.asUser(userIdent);
         this.metric.increment("ship.outgoing.users", 1);
         if (_.has(user, "traits_customerio/deleted_at")) {
-          return this.client.asUser(userIdent).traits(
+          return asUser.traits(
             _.merge({ "customerio/deleted_at": null }, hullUserTraits)
-          );
+          ).then(() => asUser.logger.info("outgoing.user.success"));
         }
-        return this.client.asUser(userIdent).traits(
-          hullUserTraits
-        );
+
+        return this.client.asUser(userIdent).traits(hullUserTraits).then(() => asUser.logger.info("outgoing.user.success"));
       })
       .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err.message }));
   }
@@ -127,7 +126,7 @@ export default class SyncAgent {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
         return this.metric.increment("ship.outgoing.events", 1);
       })
-      .catch((err) => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
+      .catch(err => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
   }
 
   sendPageEvent(userIdent: Object, page: string, event: Object) {

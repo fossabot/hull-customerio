@@ -6,7 +6,7 @@ import { Cluster } from "bottleneck";
 
 export default function bootstrap() {
   const app = express();
-  const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" } });
+  const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" }, skipSignatureValidation: true });
   connector.setupApp(app);
   server(app, new Cluster(30, 34));
   return connector.startApp(app);

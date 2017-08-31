@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-
 import Minihull from "minihull";
 import assert from "assert";
 import axios from "axios";
-import bootstrap from "./support/bootstrap";
 import jwt from "jwt-simple";
+
+import bootstrap from "./support/bootstrap";
 
 describe("Connector for webhooks endpoint", function test() {
   let minihull;
@@ -47,22 +47,10 @@ describe("Connector for webhooks endpoint", function test() {
   };
   const token = jwt.encode(config, "1234");
 
-  it("should track email events in correct form", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2" },
-      event_id: "abcd123",
-      event_type: "email_sent",
-      timestamp: 1500635446 }
-    );
-
-    minihull.on("incoming.request", (req) => {
-      const batch = req.body.batch;
-      if (batch) {
+  it.only("should track email events in correct form", (done) => {
+    minihull.on("incoming.request", req => {
+      if (req && req.body && req.body.batch) {
+        const batch = req.body.batch;
         const { type, body } = batch[0];
 
         assert.equal(type, "track");
@@ -78,27 +66,65 @@ describe("Connector for webhooks endpoint", function test() {
         done();
       }
     });
+
+    axios({
+      method: "post",
+      url: `http://localhost:8000/webhook?token=${token}`,
+      data: {
+        data: {
+          campaign_id: "1",
+          customer_id: "example_customer",
+          email_address: "example@customer.io",
+          email_id: "example_email",
+          subject: "Example Email",
+          template_id: "2"
+        },
+        event_id: "abcd123",
+        event_type: "email_sent",
+        timestamp: 1500635446
+      },
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+
+    // axios.post(`http://localhost:8000/webhook?token=${token}`, {
+    //   data: {
+    //     campaign_id: "1",
+    //     customer_id: "example_customer",
+    //     email_address: "example@customer.io",
+    //     email_id: "example_email",
+    //     subject: "Example Email",
+    //     template_id: "2"
+    //   },
+    //   event_id: "abcd123",
+    //   event_type: "email_sent",
+    //   timestamp: 1500635446
+    // });
   });
 
   it("should not track events if event_type is undefined on our side", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2" },
-      event_id: "abcd123",
-      event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446 }
-    );
-
     minihull.on("incoming.request", (req) => {
       const batch = req.body.batch;
       if (batch) {
         done("track events should not happen !");
       }
     });
+
+    axios.post(`http://localhost:8000/webhook?token=${token}`, {
+      data: {
+        campaign_id: "1",
+        customer_id: "example_customer",
+        email_address: "example@customer.io",
+        email_id: "example_email",
+        subject: "Example Email",
+        template_id: "2"
+      },
+      event_id: "abcd123",
+      event_type: "email_that_we_did_not_specified",
+      timestamp: 1500635446
+    }
+    );
 
     setTimeout(() => {
       done();
@@ -106,24 +132,27 @@ describe("Connector for webhooks endpoint", function test() {
   });
 
   it("should not track events if customerio sent test event", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2" },
-      event_id: "abc123",
-      event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446 }
-    );
-
     minihull.on("incoming.request", (req) => {
       const batch = req.body.batch;
       if (batch) {
         done("track events should not happen !");
       }
     });
+
+    axios.post(`http://localhost:8000/webhook?token=${token}`, {
+      data: {
+        campaign_id: "1",
+        customer_id: "example_customer",
+        email_address: "example@customer.io",
+        email_id: "example_email",
+        subject: "Example Email",
+        template_id: "2"
+      },
+      event_id: "abc123",
+      event_type: "email_that_we_did_not_specified",
+      timestamp: 1500635446
+    }
+    );
 
     setTimeout(() => {
       done();
