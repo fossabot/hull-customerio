@@ -15,7 +15,9 @@ export default function applyAgent(bottleneckCluster: Cluster) {
     const customerioClient = new CustomerioClient(
       _.get(req.hull.ship, "private_settings.site_id"),
       _.get(req.hull.ship, "private_settings.api_key"),
-      bottleneck);
+      bottleneck,
+      req.hull.client
+    );
 
     req.hull.service.syncAgent = new SyncAgent(req.hull, customerioClient);
     return next();

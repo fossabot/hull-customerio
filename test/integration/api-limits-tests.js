@@ -70,7 +70,8 @@ describe("Connector should respect API limits", function test() {
 
         done();
       });
-    });
+    })
+    .catch((error) => console.log(error));
   });
 });
 

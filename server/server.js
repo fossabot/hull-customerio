@@ -7,10 +7,12 @@ import webhookHandler from "./actions/webhook-handler";
 import applyAgent from "./middlewares/apply-agent";
 import * as actions from "./actions";
 import requireConfiguration from "./middlewares/check-connector-configuration";
+import { encrypt } from "./lib/crypto";
 
-export default function server(app: express, bottleneckCluster: Cluster) {
+export default function server(app: express, { bottleneckCluster, hostSecret }: Object) {
   app.get("/admin.html", (req, res) => {
-    res.render("admin.html", { hostname: req.hostname, token: req.hull.token });
+    const token = encrypt(req.hull.config, hostSecret);
+    res.render("admin.html", { hostname: req.hostname, token });
   });
 
   app.use(applyAgent(bottleneckCluster));
