@@ -47,7 +47,7 @@ describe("Connector for webhooks endpoint", function test() {
   };
   const token = jwt.encode(config, "1234");
 
-  it.only("should track email events in correct form", (done) => {
+  it("should track email events in correct form", (done) => {
     minihull.on("incoming.request", req => {
       if (req && req.body && req.body.batch) {
         const batch = req.body.batch;
@@ -87,20 +87,6 @@ describe("Connector for webhooks endpoint", function test() {
         "Content-Type": "application/json"
       }
     });
-
-    // axios.post(`http://localhost:8000/webhook?token=${token}`, {
-    //   data: {
-    //     campaign_id: "1",
-    //     customer_id: "example_customer",
-    //     email_address: "example@customer.io",
-    //     email_id: "example_email",
-    //     subject: "Example Email",
-    //     template_id: "2"
-    //   },
-    //   event_id: "abcd123",
-    //   event_type: "email_sent",
-    //   timestamp: 1500635446
-    // });
   });
 
   it("should not track events if event_type is undefined on our side", (done) => {

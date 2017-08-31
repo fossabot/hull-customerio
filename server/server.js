@@ -1,6 +1,5 @@
 /* @flow */
 import express from "express";
-import { Cluster } from "bottleneck";
 import { notifHandler, smartNotifierHandler } from "hull/lib/utils";
 
 import webhookHandler from "./actions/webhook-handler";
