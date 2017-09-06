@@ -1,6 +1,7 @@
 /* @flow */
 import axios from "axios";
 import Bottleneck from "bottleneck";
+import { Client } from "hull";
 
 export default class CustomerioClient {
   urlPrefix: string;
@@ -9,14 +10,16 @@ export default class CustomerioClient {
     password: string;
   };
   bottleneck: Bottleneck;
+  client: Client;
 
-  constructor(siteId: string, apiKey: string, bottleneck: Bottleneck) {
+  constructor(siteId: string, apiKey: string, bottleneck: Bottleneck, client: Client) {
     this.urlPrefix = "https://track.customer.io/api/v1";
     this.auth = {
       username: siteId,
       password: apiKey
     };
     this.bottleneck = bottleneck;
+    this.client = client;
   }
 
   isConfigured() {
@@ -54,6 +57,7 @@ export default class CustomerioClient {
   }
 
   request(url: string, method: string, data: Object = {}) {
+    this.client.logger.debug("customerioClient.request", { method, url });
     return axios({
       method,
       url,

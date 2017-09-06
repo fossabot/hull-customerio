@@ -18,7 +18,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"],
+    events_filter: ["page", "custom", "anonymous"],
     enable_user_deletion: "true",
   };
 
@@ -45,12 +45,14 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
   it("should send batch of users to customer.io", (done) => {
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "Veitch"
+      last_name: "Veitch",
+      hull_segments: "testSegment"
     });
 
     const johnSnowCustomerNock = customerioMock.setUpIdentifyCustomerNock("44444", "444@test.com", {
       first_name: "John",
-      last_name: "Snow"
+      last_name: "Snow",
+      hull_segments: "testSegment"
     });
 
     minihull.stubBatch([{
@@ -74,6 +76,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
         assert(_.get(jamesVeitchBatch.body, "customerio/created_at"));
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/email"), "222@test.com");
         assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
+        assert.equal(_.get(jamesVeitchBatch.body, "customerio/id"), "22222");
         assert.equal(Object.keys(jamesVeitchBatch.body).length, 5);
 
         assert.equal(johnSnowBatch.type, "traits");
@@ -89,19 +92,42 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
   });
 
+  it("should not send user if he was never sent to customer.io", (done) => {
+    const johnSnowCustomerNock = customerioMock.setUpDeleteCustomerNock("44444");
+
+    minihull.stubBatch([{
+      email: "444@test.com", id: "44444", external_id: "1", anonymous_id: "2", first_name: "John", last_name: "Snow",
+      segment_ids: []
+    }]);
+
+    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
+      minihull.on("incoming.request", (req) => {
+        if (req && req.body && req.body.batch && req.body.batch[0] && req.body.batch[0].type === "traits") {
+          done(Error("user should not be sent to platform cause we should skip him"));
+        }
+      });
+    });
+    setTimeout(() => {
+      assert(!johnSnowCustomerNock.isDone());
+      done();
+    }, 1500);
+  });
+
   it("should send batch of users to customer.io and delete users that do not match filtered segments", (done) => {
     const firstCustomerCreateNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "First"
+      last_name: "First",
+      hull_segments: "testSegment"
     });
 
-    const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("44444");
+    const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("55555");
 
     minihull.stubBatch([{
       email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "First",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "44444", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second"
+      email: "444@test.com", id: "55555", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second",
+      "traits_customerio/id": "55555"
     }]);
 
     let firstCheck = false;
@@ -127,16 +153,16 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
           secondCheck = true;
         }
       });
-    });
 
-    setTimeout(() => {
-      firstCustomerCreateNock.done();
-      secondCustomerDeleteNock.done();
-      if (!firstCheck) done("first check not satisfied");
-      else if (!secondCheck) done("second check not satisfied");
-      else done();
-    }, 2500);
-  }).timeout(3000);
+      setTimeout(() => {
+        firstCustomerCreateNock.done();
+        secondCustomerDeleteNock.done();
+        if (!firstCheck) done("first check not satisfied");
+        else if (!secondCheck) done("second check not satisfied");
+        else done();
+      }, 3500);
+    });
+  }).timeout(4000);
 });
 
 describe("Connector for batch endpoint if user deletion is disabled", function test() {
@@ -151,7 +177,7 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     site_id: "1",
     api_key: "2",
     synchronized_attributes: ["first_name", "last_name"],
-    events_filter: ["Page Event", "Custom Event", "Anonymous Event"]
+    events_filter: ["page", "custom", "anonymous"]
   };
 
   beforeEach((done) => {
@@ -177,12 +203,14 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
   it("should send batch of users to customer.io", (done) => {
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
-      last_name: "Veitch"
+      last_name: "Veitch",
+      hull_segments: "testSegment"
     });
 
     const johnSnowCustomerNock = customerioMock.setUpIdentifyCustomerNock("44444", "444@test.com", {
       first_name: "John",
-      last_name: "Snow"
+      last_name: "Snow",
+      hull_segments: "testSegment"
     });
 
     minihull.stubBatch([{

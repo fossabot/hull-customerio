@@ -35,5 +35,10 @@ export default function webhookHandler(req: Request, res: Response) {
     created_at: timestamp
   };
 
-  return asUser.track(eventName, eventPayload, context).then(() => req.hull.metric.increment("ship.incoming.events", 1));
+  return asUser.track(eventName, eventPayload, context).then(() => {
+    asUser.logger.info("incoming.event.success", eventName);
+    req.hull.metric.increment("ship.incoming.events", 1);
+  }, (error) => {
+    asUser.logger.error("incoming.event.error", error);
+  });
 }
