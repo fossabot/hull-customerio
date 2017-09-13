@@ -31,11 +31,10 @@ export default function updateUser({ client, service, ship }: Object, messages: 
   const { syncAgent } = service;
   return Promise.all(messages.map(({ user, segments, events, changes }) => {
     const userPromises = [];
-
-    if (!_.get(changes, "user['traits_customerio/id'][1]", false)) {
+    if (!_.get(changes, "user['traits_customerio/created_at'][1]", false) || !_.get(changes, "user['traits_customerio/deleted_at'][1]", false)) {
       if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {
         userPromises.push(syncAgent.sendAllUserProperties(user, segments));
-      } else if (userDeletionEnabled && !_.get(user, "traits_customerio/deleted_at") && _.get(user, "traits_customerio/id")) {
+      } else if (userDeletionEnabled && !_.get(user, "traits_customerio/deleted_at")) {
         userPromises.push(syncAgent.deleteUser(user));
       } else {
         client.asUser(user).logger.info("outgoing.user.skip", {
