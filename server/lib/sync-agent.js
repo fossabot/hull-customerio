@@ -33,11 +33,6 @@ export default class SyncAgent {
       return false;
     }
 
-    if (!_.get(user, "traits_customerio/id")) {
-      this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user was never sent to customer.io" });
-      return false;
-    }
-
     return true;
   }
 
@@ -76,11 +71,13 @@ export default class SyncAgent {
     if (!alreadySetCustomerId || _.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
-    filteredHullUserTraits = _.merge({ email, hull_segments: segments.map(s => s.name).join(", ") }, filteredHullUserTraits);
-    const hullUserTraits = _.mapKeys(
-      _.merge({ id: userCustomerioId }, _.omit(filteredHullUserTraits, "hull_segments")),
-      ((value, key) => `customerio/${key}`)
-    );
+    filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
+      (value, key) => {
+        if (_.startsWith(key, "traits_")) {
+          return _.trim(key, "traits_");
+        }
+        return key;
+      });
 
     return Promise.all(
       (_.chunk(_.toPairs(filteredHullUserTraits), 30))
@@ -91,18 +88,16 @@ export default class SyncAgent {
         }
     ))
       .then(() => {
-        this.client.asUser(userIdent).logger.info("outgoing.user.success");
-        this.metric.increment("ship.outgoing.users", 1);
         if (_.has(user, "traits_customerio/deleted_at")) {
-          return this.client.asUser(userIdent).traits(
-            _.merge({ "customerio/deleted_at": null }, hullUserTraits)
-          );
+          return this.client.asUser(userIdent).traits({ "customerio/deleted_at": null });
         }
-        return this.client.asUser(userIdent).traits(
-          hullUserTraits
-        );
+        return {};
       })
-      .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err.message }));
+      .then(() => {
+        this.metric.increment("ship.outgoing.users", 1);
+        return this.client.asUser(userIdent).logger.info("outgoing.user.success");
+      })
+      .catch(err => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err.message }));
   }
 
   deleteUser(user: Object) {
@@ -118,7 +113,7 @@ export default class SyncAgent {
         this.client.asUser(user).logger.debug("user.deletion.success");
         return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
       })
-      .catch((err) => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err.message }));
+      .catch(err => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err.message }));
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
@@ -127,7 +122,7 @@ export default class SyncAgent {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
         return this.metric.increment("ship.outgoing.events", 1);
       })
-      .catch((err) => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
+      .catch(err => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
   }
 
   sendPageEvent(userIdent: Object, page: string, event: Object) {
@@ -143,7 +138,7 @@ export default class SyncAgent {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
       })
-      .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
+      .catch(err => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
   }
 
   sendUserEvent(userIdent: Object, eventName: string, eventData: Object) {
@@ -159,6 +154,6 @@ export default class SyncAgent {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);
       })
-      .catch((err) => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
+      .catch(err => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
   }
 }
