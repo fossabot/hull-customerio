@@ -58,7 +58,7 @@ export default class SyncAgent {
 
     let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
 
-    if (_.has(user, "traits_customerio/deleted_at")) {
+    if (!_.has(user, "traits_customerio/created_at") || _.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
     filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
@@ -79,8 +79,11 @@ export default class SyncAgent {
     ))
       .then(() => {
         if (_.has(user, "traits_customerio/deleted_at")) {
-          return this.client.asUser(userIdent).traits({ "customerio/deleted_at": null });
+          return this.client.asUser(userIdent).traits({ "customerio/deleted_at": null, "customerio/created_at": created_at });
+        } else if (_.has(filteredHullUserTraits, "created_at")) {
+          return this.client.asUser(userIdent).traits({ "customerio/created_at": created_at });
         }
+
         return {};
       })
       .then(() => {
@@ -101,7 +104,7 @@ export default class SyncAgent {
     return this.customerioClient.deleteUser(id)
       .then(() => {
         this.client.asUser(user).logger.info("user.deletion.success");
-        return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
+        return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format(), "customerio/created_at": null });
       })
       .catch(err => this.client.asUser(user).logger.error("user.deletion.error", { errors: err.message }));
   }

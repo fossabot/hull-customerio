@@ -1,6 +1,8 @@
 /* global describe, it, beforeEach, afterEach */
 
 import Minihull from "minihull";
+import assert from "assert";
+
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
@@ -71,14 +73,22 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
   });
 
   it("should delete user even if he was never sent to customer.io", done => {
-    customerioMock.setUpDeleteCustomerNock("44444", () => done());
+    const deleteNock = customerioMock.setUpDeleteCustomerNock("44444");
 
     minihull.stubBatch([{
       email: "444@test.com", id: "44444", external_id: "1", anonymous_id: "2", first_name: "John", last_name: "Snow",
       segment_ids: []
     }]);
 
-    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch");
+    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
+      minihull.on("incoming.request", req => {
+        const { body, type } = req.body.batch[0];
+        assert.equal(type, "traits");
+        assert(body["customerio/deleted_at"]);
+        deleteNock.done();
+        done();
+      });
+    });
   });
 
   it("should send batch of users to customer.io and delete users that do not match filtered segments", done => {

@@ -15,12 +15,7 @@ module.exports = function mocks() {
         }
         return undefined;
       }),
-    setUpAlreadyIdentifiedCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
-      .put(`/customers/${userId}`, _.merge(attributes, {
-        email
-      }))
-      .reply(200),
-    setUpNextIdentifyBatchCusotomerNock: (userId, attributes) => nock(API_PREFIX)
+    setUpNextIdentifyBatchCustomerNock: (userId, attributes) => nock(API_PREFIX)
       .put(`/customers/${userId}`, attributes)
       .reply(200),
     setUpDeleteCustomerNock: (userId, callback) => nock(API_PREFIX)
@@ -31,12 +26,17 @@ module.exports = function mocks() {
         }
         return undefined;
       }),
-    setUpSendAnonymousEventNock: (name, data) => nock(API_PREFIX)
+    setUpSendAnonymousEventNock: (name, data, callback) => nock(API_PREFIX)
       .post("/events", {
         name,
         data
       })
-      .reply(200),
+      .reply(200, () => {
+        if (callback) {
+          callback();
+        }
+        return undefined;
+      }),
     setUpSendPageViewEventNock: (userId, name, data) => nock(API_PREFIX)
       .post(`/customers/${userId}/events`, {
         name,
@@ -50,11 +50,8 @@ module.exports = function mocks() {
         data
       })
       .reply(200),
-    setUpCreateUserBadScenarioNock: (userId, email) => nock(API_PREFIX)
-      .put(`/customers/${userId}`, {
-        email,
-        created_at: /.*/
-      })
+    setUpDeleteUserBadScenarioNock: (userId) => nock(API_PREFIX)
+      .delete(`/customers/${userId}`)
       .reply(500)
   };
 };

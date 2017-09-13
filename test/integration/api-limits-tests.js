@@ -17,7 +17,7 @@ describe("Connector should respect API limits", function test() {
     api_key: "2"
   };
 
-  beforeEach((done) => {
+  beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -37,7 +37,7 @@ describe("Connector should respect API limits", function test() {
     server.close();
   });
 
-  it("should send attributes in 30 count batches", (done) => {
+  it("should send attributes in 30 count batches", done => {
     const range = _.range(35);
 
     const hullUserIdent = { email: "333@test.com" };
@@ -46,9 +46,9 @@ describe("Connector should respect API limits", function test() {
     private_settings.synchronized_attributes = Object.keys(hullUserFields);
 
     const firstBatchNock = customerioMock.setUpIdentifyCustomerNock("33333", "333@test.com",
-      _.merge(_.pickBy(hullUserFields, (v) => v < 27, { hull_segments: "testSegment" })));
+      _.merge(_.pickBy(hullUserFields, v => v < 28, { hull_segments: ["testSegment"] })));
 
-    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCusotomerNock("33333", _.pickBy(hullUserFields, v => v >= 27));
+    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCustomerNock("33333", _.pickBy(hullUserFields, v => v >= 28));
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: _.merge({ test_id: "33333" }, hullUserIdent, hullUserFields),
@@ -60,7 +60,7 @@ describe("Connector should respect API limits", function test() {
         firstBatchNock.done();
         secondBatchNock.done();
         done();
-      }, 500);
+      }, 1500);
     });
   });
 });

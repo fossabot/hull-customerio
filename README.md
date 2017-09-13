@@ -11,3 +11,4 @@ Sync users from Hull platform to Customer.io and track all email events.
 
 ### Logs :
 - `user.deletion.success` - when user was successfully deleted from customerio
+- `user.deletion.error` - encountered errors during user deletion
