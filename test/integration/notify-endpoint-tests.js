@@ -53,7 +53,7 @@ describe("Connector for notify endpoint", function test() {
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    });
+    }).then(res => assert.equal(res.statusCode, 200));
   });
 
   it("should send events to customer.io", done => {
@@ -164,7 +164,7 @@ describe("Connector for notify endpoint", function test() {
         }
       }],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    });
+    }).then(res => assert.equal(res.statusCode, 200));
   });
 
   it("should send only email, created_at and hull_segments attributes if synchronized_attributes does not contains other fields", done => {
@@ -175,7 +175,7 @@ describe("Connector for notify endpoint", function test() {
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    });
+    }).then(res => assert.equal(res.statusCode, 200));
   });
 
   it("should handle customerio api failure and not return 500", done => {
