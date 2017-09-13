@@ -28,7 +28,19 @@ export default class SyncAgent {
   }
 
   deleteBatchOfUsers(users: Array<Object>) {
-    return Promise.all(users.map(user => this.deleteUser(user)));
+    return Promise.all(users.filter(user => {
+      if (_.has(user, "traits_customerio/deleted_at")) {
+        this.client.asUser(user).logger.info("outgoing.deletion.skip", { reason: "User already deleted" });
+        return false;
+      }
+
+      if (!_.has(user, "traits_customerio/created_at")) {
+        this.client.asUser(user).logger.info("outgoing.deletion.skip", { reason: "User was never sent to customer.io" });
+        return false;
+      }
+
+      return true;
+    }).map(user => this.deleteUser(user)));
   }
 
   getUsersCustomerioId(user: Object) {
@@ -103,9 +115,12 @@ export default class SyncAgent {
 
     return this.customerioClient.deleteUser(id)
       .then(() => {
-        this.client.asUser(user).logger.info("user.deletion.success");
-        return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format(), "customerio/created_at": null });
+        if (_.has(user, "traits_customerio/created_at")) {
+          return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format(), "customerio/created_at": null });
+        }
+        return {};
       })
+      .then(() => this.client.asUser(user).logger.info("user.deletion.success"))
       .catch(err => this.client.asUser(user).logger.error("user.deletion.error", { errors: err.message }));
   }
 

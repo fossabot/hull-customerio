@@ -3,8 +3,9 @@
 import Minihull from "minihull";
 import assert from "assert";
 import axios from "axios";
+
 import bootstrap from "./support/bootstrap";
-import jwt from "jwt-simple";
+import { encrypt } from "../../server/lib/crypto";
 
 describe("Connector for webhooks endpoint", function test() {
   let minihull;
@@ -20,7 +21,7 @@ describe("Connector for webhooks endpoint", function test() {
     events_filter: ["page", "custom", "anonymous"]
   };
 
-  beforeEach((done) => {
+  beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -45,22 +46,28 @@ describe("Connector for webhooks endpoint", function test() {
     ship: "123456789012345678901234",
     secret: "1234"
   };
-  const token = jwt.encode(config, "1234");
+  const token = encrypt(config, "1234");
 
-  it("should track email events in correct form", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2" },
-      event_id: "abcd123",
-      event_type: "email_sent",
-      timestamp: 1500635446 }
-    );
+  it("should track email events in correct form", done => {
+    axios({
+      method: "post",
+      url: `http://localhost:8000/webhook?conf=${token}`,
+      data: {
+        data: {
+          campaign_id: "1",
+          customer_id: "example_customer",
+          email_address: "example@customer.io",
+          email_id: "example_email",
+          subject: "Example Email",
+          template_id: "2"
+        },
+        event_id: "abcd123",
+        event_type: "email_sent",
+        timestamp: 1500635446
+      }
+    });
 
-    minihull.on("incoming.request", (req) => {
+    minihull.on("incoming.request", req => {
       const batch = req.body.batch;
       if (batch) {
         const { type, body } = batch[0];
@@ -80,20 +87,23 @@ describe("Connector for webhooks endpoint", function test() {
     });
   });
 
-  it("should not track events if event_type is undefined on our side", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
+  it("should not track events if event_type is undefined on our side", done => {
+    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
+      data: {
+        campaign_id: "1",
         customer_id: "example_customer",
         email_address: "example@customer.io",
         email_id: "example_email",
         subject: "Example Email",
-        template_id: "2" },
+        template_id: "2"
+      },
       event_id: "abcd123",
       event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446 }
+      timestamp: 1500635446
+    }
     );
 
-    minihull.on("incoming.request", (req) => {
+    minihull.on("incoming.request", req => {
       const batch = req.body.batch;
       if (batch) {
         done("track events should not happen !");
@@ -105,20 +115,23 @@ describe("Connector for webhooks endpoint", function test() {
     }, 1500);
   });
 
-  it("should not track events if customerio sent test event", (done) => {
-    axios.post(`http://localhost:8000/webhook?token=${token}`, { data:
-      { campaign_id: "1",
+  it("should not track events if customerio sent test event", done => {
+    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
+      data: {
+        campaign_id: "1",
         customer_id: "example_customer",
         email_address: "example@customer.io",
         email_id: "example_email",
         subject: "Example Email",
-        template_id: "2" },
+        template_id: "2"
+      },
       event_id: "abc123",
       event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446 }
+      timestamp: 1500635446
+    }
     );
 
-    minihull.on("incoming.request", (req) => {
+    minihull.on("incoming.request", req => {
       const batch = req.body.batch;
       if (batch) {
         done("track events should not happen !");
@@ -130,3 +143,4 @@ describe("Connector for webhooks endpoint", function test() {
     }, 1500);
   });
 });
+
