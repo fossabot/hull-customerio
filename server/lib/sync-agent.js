@@ -27,21 +27,12 @@ export default class SyncAgent {
     return Promise.all(messages.map(message => this.sendAllUserProperties(message.user, message.segments)));
   }
 
-  filterDeletion(user: Object) {
-    if (_.get(user, "traits_customerio/deleted_at")) {
-      this.client.asUser(user).logger.debug("user.deletion.skip", { reason: "user already deleted" });
-      return false;
-    }
-
-    return true;
-  }
-
   deleteBatchOfUsers(users: Array<Object>) {
-    return Promise.all(users.filter(this.filterDeletion.bind(this)).map(user => this.deleteUser(user)));
+    return Promise.all(users.map(user => this.deleteUser(user)));
   }
 
   getUsersCustomerioId(user: Object) {
-    return _.get(user, "traits_customerio/id", _.get(user, this.idMapping));
+    return _.get(user, this.idMapping);
   }
 
   getIdMapping() {
@@ -55,7 +46,6 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    const alreadySetCustomerId = _.has(user, "traits_customerio/id");
     const userCustomerioId = this.getUsersCustomerioId(user);
 
     if (!userCustomerioId) {
@@ -68,7 +58,7 @@ export default class SyncAgent {
 
     let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
 
-    if (!alreadySetCustomerId || _.has(user, "traits_customerio/deleted_at")) {
+    if (_.has(user, "traits_customerio/deleted_at")) {
       filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
     }
     filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
@@ -110,10 +100,10 @@ export default class SyncAgent {
 
     return this.customerioClient.deleteUser(id)
       .then(() => {
-        this.client.asUser(user).logger.debug("user.deletion.success");
+        this.client.asUser(user).logger.info("user.deletion.success");
         return this.client.asUser(user).traits({ "customerio/deleted_at": moment().format() });
       })
-      .catch(err => this.client.asUser(user).logger.debug("user.deletion.error", { errors: err.message }));
+      .catch(err => this.client.asUser(user).logger.error("user.deletion.error", { errors: err.message }));
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {

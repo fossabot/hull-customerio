@@ -4,12 +4,17 @@ import _ from "lodash";
 module.exports = function mocks() {
   const API_PREFIX = "https://track.customer.io/api/v1";
   return {
-    setUpIdentifyCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
+    setUpIdentifyCustomerNock: (userId, email, attributes, callback) => nock(API_PREFIX)
       .put(`/customers/${userId}`, _.merge({
         email,
         created_at: /.*/
       }, attributes))
-      .reply(200),
+      .reply(200, () => {
+        if (callback) {
+          callback();
+        }
+        return undefined;
+      }),
     setUpAlreadyIdentifiedCustomerNock: (userId, email, attributes) => nock(API_PREFIX)
       .put(`/customers/${userId}`, _.merge(attributes, {
         email
@@ -18,9 +23,14 @@ module.exports = function mocks() {
     setUpNextIdentifyBatchCusotomerNock: (userId, attributes) => nock(API_PREFIX)
       .put(`/customers/${userId}`, attributes)
       .reply(200),
-    setUpDeleteCustomerNock: (userId) => nock(API_PREFIX)
+    setUpDeleteCustomerNock: (userId, callback) => nock(API_PREFIX)
       .delete(`/customers/${userId}`)
-      .reply(200),
+      .reply(200, () => {
+        if (callback) {
+          callback();
+        }
+        return undefined;
+      }),
     setUpSendAnonymousEventNock: (name, data) => nock(API_PREFIX)
       .post("/events", {
         name,
