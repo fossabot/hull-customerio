@@ -53,7 +53,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    const created_at = Date.now() / 1000;
+    const created_at = moment().format("X");
     const userIdent = { email };
 
     let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
@@ -64,7 +64,7 @@ export default class SyncAgent {
     filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
       (value, key) => {
         if (_.startsWith(key, "traits_")) {
-          return _.trim(key, "traits_");
+          return key.substr(7);
         }
         return key;
       });
