@@ -80,7 +80,7 @@ export default class SyncAgent {
       });
 
     return Promise.all(
-      (_.chunk(_.toPairs(filteredHullUserTraits), 30))
+      _.chunk(_.toPairs(filteredHullUserTraits), 30)
         .map(_.fromPairs)
         .map(userData => {
           this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userData).length });
@@ -95,9 +95,9 @@ export default class SyncAgent {
       })
       .then(() => {
         this.metric.increment("ship.outgoing.users", 1);
-        return this.client.asUser(userIdent).logger.info("outgoing.user.success");
+        return this.client.asUser(userIdent).logger.info("outgoing.user.success", { traits: filteredHullUserTraits });
       })
-      .catch(err => this.client.asUser(userIdent).logger.error("outgoing.user.error", { errors: err.message }));
+      .catch(err => this.client.asUser(userIdent).logger.error("outgoing.user.error", { traits: filteredHullUserTraits, errors: err.message }));
   }
 
   deleteUser(user: Object) {
