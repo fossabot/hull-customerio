@@ -1,3 +1,10 @@
+# 0.1.2
+
+- set created_at to a timestamp without miliseconds
+- set hull_segments as array instead of a concatenated string
+- don't save sent traits in customerio subgroup
+- unset created_at when deleting user and unset deleted_at then pushing it again
+
 # 0.1.1
 
 - fix outgoing event filtering
