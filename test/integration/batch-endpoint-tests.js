@@ -1,7 +1,7 @@
 /* global describe, it, beforeEach, afterEach */
 
 import Minihull from "minihull";
-import assert from "assert";
+import moment from "moment";
 
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
@@ -72,7 +72,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
   });
 
-  it("should delete user even if he was never sent to customer.io", done => {
+  it("should not delete user if he was never sent to customer.io", done => {
     const deleteNock = customerioMock.setUpDeleteCustomerNock("44444");
 
     minihull.stubBatch([{
@@ -81,13 +81,15 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     }]);
 
     minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
-      minihull.on("incoming.request", req => {
-        const { body, type } = req.body.batch[0];
-        assert.equal(type, "traits");
-        assert(body["customerio/deleted_at"]);
-        deleteNock.done();
-        done();
+      minihull.on("incoming.request", () => {
+        if (deleteNock.isDone()) {
+          done(Error("Unexpected request"));
+        }
       });
+
+      setTimeout(() => {
+        done();
+      }, 1000);
     });
   });
 
@@ -104,7 +106,8 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
       email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "First",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "55555", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second"
+      email: "444@test.com", id: "55555", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second",
+      segment_ids: [], "traits_customerio/created_at": moment().format()
     }]);
 
     minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {

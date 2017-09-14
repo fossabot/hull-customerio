@@ -2,6 +2,7 @@
 
 import Minihull from "minihull";
 import assert from "assert";
+import moment from "moment";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
@@ -124,7 +125,8 @@ describe("Connector for notify endpoint", function test() {
         email: "foo@bar.com",
         test_id: "77777",
         first_name: "James",
-        last_name: "Bond"
+        last_name: "Bond",
+        "traits_customerio/created_at": moment().format()
       },
       changes: {},
       events: [],
