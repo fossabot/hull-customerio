@@ -6,7 +6,6 @@ import eventsMapping from "../mappings/events-mapping";
 
 export default function webhookHandler(req: Request, res: Response) {
   res.send();
-  // TODO MISSING BODY ?!
   if (!req.body || !req.body.event_id) {
     return Promise.resolve();
   }
