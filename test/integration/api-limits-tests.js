@@ -1,7 +1,6 @@
 /* global describe, it, beforeEach, afterEach */
 
 import Minihull from "minihull";
-import assert from "assert";
 import _ from "lodash";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
@@ -18,7 +17,7 @@ describe("Connector should respect API limits", function test() {
     api_key: "2"
   };
 
-  beforeEach((done) => {
+  beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -38,7 +37,7 @@ describe("Connector should respect API limits", function test() {
     server.close();
   });
 
-  it("should send attributes in 30 count batches", (done) => {
+  it("should send attributes in 30 count batches", done => {
     const range = _.range(35);
 
     const hullUserIdent = { email: "333@test.com" };
@@ -47,9 +46,9 @@ describe("Connector should respect API limits", function test() {
     private_settings.synchronized_attributes = Object.keys(hullUserFields);
 
     const firstBatchNock = customerioMock.setUpIdentifyCustomerNock("33333", "333@test.com",
-      _.merge(_.pickBy(hullUserFields, (v) => v < 27, { hull_segments: "testSegment" })));
+      _.merge(_.pickBy(hullUserFields, v => v < 27, { hull_segments: ["testSegment"] })));
 
-    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCusotomerNock("33333", _.pickBy(hullUserFields, (v) => v >= 27));
+    const secondBatchNock = customerioMock.setUpNextIdentifyBatchCustomerNock("33333", _.pickBy(hullUserFields, v => v >= 27));
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
       user: _.merge({ test_id: "33333" }, hullUserIdent, hullUserFields),
@@ -57,21 +56,11 @@ describe("Connector should respect API limits", function test() {
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
     }).then(() => {
-      minihull.on("incoming.request", (req) => {
+      setTimeout(() => {
         firstBatchNock.done();
         secondBatchNock.done();
-        const requestData = req.body.batch[0];
-
-        assert(requestData.type === "traits");
-        assert.equal(_.get(requestData.body, "customerio/email"), "333@test.com");
-        assert(_.get(requestData.body, "customerio/created_at"));
-        assert.equal(_.get(requestData.body, "customerio/id"), "33333");
-        range.forEach(idx => assert(_.get(requestData.body, `customerio/field_${idx}`) === idx));
-
         done();
-      });
-    })
-    .catch((error) => console.log(error));
+      }, 1500);
+    });
   });
 });
-

@@ -2,9 +2,9 @@
 import Minihull from "minihull";
 import assert from "assert";
 import axios from "axios";
-import jwt from "jwt-simple";
 
 import bootstrap from "./support/bootstrap";
+import { encrypt } from "../../server/lib/crypto";
 
 describe("Connector for webhooks endpoint", function test() {
   let minihull;
@@ -20,7 +20,7 @@ describe("Connector for webhooks endpoint", function test() {
     events_filter: ["page", "custom", "anonymous"]
   };
 
-  beforeEach((done) => {
+  beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -45,12 +45,30 @@ describe("Connector for webhooks endpoint", function test() {
     ship: "123456789012345678901234",
     secret: "1234"
   };
-  const token = jwt.encode(config, "1234");
+  const token = encrypt(config, "1234");
 
-  it("should track email events in correct form", (done) => {
+  it("should track email events in correct form", done => {
+    axios({
+      method: "post",
+      url: `http://localhost:8000/webhook?conf=${token}`,
+      data: {
+        data: {
+          campaign_id: "1",
+          customer_id: "example_customer",
+          email_address: "example@customer.io",
+          email_id: "example_email",
+          subject: "Example Email",
+          template_id: "2"
+        },
+        event_id: "abcd123",
+        event_type: "email_sent",
+        timestamp: 1500635446
+      }
+    });
+
     minihull.on("incoming.request", req => {
-      if (req && req.body && req.body.batch) {
-        const batch = req.body.batch;
+      const batch = req.body.batch;
+      if (batch) {
         const { type, body } = batch[0];
 
         assert.equal(type, "track");
@@ -66,38 +84,10 @@ describe("Connector for webhooks endpoint", function test() {
         done();
       }
     });
-
-    axios({
-      method: "post",
-      url: `http://localhost:8000/webhook?token=${token}`,
-      data: {
-        data: {
-          campaign_id: "1",
-          customer_id: "example_customer",
-          email_address: "example@customer.io",
-          email_id: "example_email",
-          subject: "Example Email",
-          template_id: "2"
-        },
-        event_id: "abcd123",
-        event_type: "email_sent",
-        timestamp: 1500635446
-      },
-      headers: {
-        "Content-Type": "application/json"
-      }
-    });
   });
 
-  it("should not track events if event_type is undefined on our side", (done) => {
-    minihull.on("incoming.request", (req) => {
-      const batch = req.body.batch;
-      if (batch) {
-        done("track events should not happen !");
-      }
-    });
-
-    axios.post(`http://localhost:8000/webhook?token=${token}`, {
+  it("should not track events if event_type is undefined on our side", done => {
+    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
       data: {
         campaign_id: "1",
         customer_id: "example_customer",
@@ -112,20 +102,20 @@ describe("Connector for webhooks endpoint", function test() {
     }
     );
 
-    setTimeout(() => {
-      done();
-    }, 1500);
-  });
-
-  it("should not track events if customerio sent test event", (done) => {
-    minihull.on("incoming.request", (req) => {
+    minihull.on("incoming.request", req => {
       const batch = req.body.batch;
       if (batch) {
         done("track events should not happen !");
       }
     });
 
-    axios.post(`http://localhost:8000/webhook?token=${token}`, {
+    setTimeout(() => {
+      done();
+    }, 1500);
+  });
+
+  it("should not track events if customerio sent test event", done => {
+    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
       data: {
         campaign_id: "1",
         customer_id: "example_customer",
@@ -140,8 +130,16 @@ describe("Connector for webhooks endpoint", function test() {
     }
     );
 
+    minihull.on("incoming.request", req => {
+      const batch = req.body.batch;
+      if (batch) {
+        done("track events should not happen !");
+      }
+    });
+
     setTimeout(() => {
       done();
     }, 1500);
   });
 });
+
