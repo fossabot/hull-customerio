@@ -68,7 +68,6 @@ describe("Connector for webhooks endpoint", function test() {
 
     minihull.on("incoming.request", req => {
       const batch = req.body.batch;
-      console.log(batch);
       if (batch) {
         const { type, body } = batch[0];
 
