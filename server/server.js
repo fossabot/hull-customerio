@@ -1,6 +1,7 @@
 /* @flow */
 import express from "express";
 import { notifHandler } from "hull/lib/utils";
+import bodyParser from "body-parser";
 
 import webhookHandler from "./actions/webhook-handler";
 import applyAgent from "./middlewares/apply-agent";
@@ -16,7 +17,7 @@ export default function server(app: express, { bottleneckCluster, hostSecret }: 
 
   app.use(applyAgent(bottleneckCluster));
 
-  app.all("/webhook", webhookHandler);
+  app.all("/webhook", bodyParser.json(), webhookHandler);
 
   app.use(requireConfiguration);
 

@@ -12,7 +12,7 @@ export function encrypt(text, password) {
 
 export function decrypt(text, password) {
   const decipher = crypto.createDecipher(algorithm, password);
-  let dec = decipher.update(text, "base64", "utf8");
+  let dec = decipher.update(decodeURIComponent(text), "base64", "utf8");
   dec += decipher.final("utf8");
   return qs.parse(dec);
 }
