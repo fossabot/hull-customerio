@@ -76,9 +76,9 @@ export default class SyncAgent {
     filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
       (value, key) => {
         if (_.startsWith(key, "traits_")) {
-          return key.substr(7);
+          return key.substr(7).split("/").join("-");
         }
-        return key;
+        return key.split("/").join("-");
       });
 
     return Promise.all(
