@@ -69,25 +69,16 @@ export default class SyncAgent {
     const created_at = moment().format("X");
     const userIdent = { email };
 
-    console.log(`User ${user.id} attibute mappings`, this.userAttributesMapping);
-
-    console.log(`User ${user.id} profile`, user);
-
     const mapper = new AttributesMapper(this.userAttributesMapping);
     const payloadUser = _.merge({ email, hull_segments: segments.map(s => s.name) }, user);
 
-    console.log(`User ${user.id} payload to map`, payloadUser);
-
     const filteredHullUserTraits = mapper.mapAttributesForService(payloadUser, created_at, email);
-
-    console.log(`User ${user.id} attibutes`, filteredHullUserTraits);
 
     return Promise.all(
       _.chunk(_.toPairs(filteredHullUserTraits), 30)
         .map(_.fromPairs)
         .map(userData => {
           this.client.logger.debug("outgoing.user.progress", { userPropertiesSent: Object.keys(userData).length });
-          console.warn("Sending data to customer.io ", userData);
           return this.customerioClient.identify(userCustomerioId, userData);
         }
     ))

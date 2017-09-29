@@ -6,7 +6,7 @@ import moment from "moment";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
-describe("Connector for batch endpoint if user deletion is enabled", function test() {
+describe.skip("Connector for batch endpoint if user deletion is enabled", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
@@ -120,7 +120,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
   });
 });
 
-describe("Connector for batch endpoint if user deletion is disabled", function test() {
+describe.skip("Connector for batch endpoint if user deletion is disabled", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();

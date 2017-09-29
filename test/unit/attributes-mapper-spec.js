@@ -42,8 +42,7 @@ describe("AttributesMapper", () => {
       },
       first_name: "Thomas",
       last_name: "Bass",
-      "traits_salesforce_lead/title": "Customer Success",
-      email: "tb@hull.io"
+      "traits_salesforce_lead/title": "Customer Success"
     };
 
     const mappedAttribs = {
@@ -57,7 +56,7 @@ describe("AttributesMapper", () => {
     };
 
     const mapper = new AttributesMapper(attribMappings);
-    const result = mapper.mapAttributesForService(user, "1360013296");
+    const result = mapper.mapAttributesForService(user, "1360013296", "tb@hull.io");
 
     assert.deepEqual(result, mappedAttribs);
   });
@@ -76,8 +75,7 @@ describe("AttributesMapper", () => {
       },
       first_name: "Thomas",
       last_name: "Bass",
-      "traits_salesforce_lead/title": "Customer Success",
-      email: "tb@hull.io"
+      "traits_salesforce_lead/title": "Customer Success"
     };
 
     const mappedAttribs = {
@@ -89,7 +87,7 @@ describe("AttributesMapper", () => {
     };
 
     const mapper = new AttributesMapper(attribMappings);
-    const result = mapper.mapAttributesForService(user, "1360013296");
+    const result = mapper.mapAttributesForService(user, "1360013296", "tb@hull.io");
 
     assert.deepEqual(result, mappedAttribs);
   });
