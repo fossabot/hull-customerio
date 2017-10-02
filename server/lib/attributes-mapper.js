@@ -31,6 +31,11 @@ export default class AttributesMapper {
       });
     }
 
+    // Ensure that we don't skip hull_segments
+    if (!_.includes(this.userAttributesMapping)) {
+      this.userAttributesMapping.push("hull_segments");
+    }
+
     let filteredAttributes = _.pick(user, this.userAttributesMapping);
 
     // Set created_at if not present or deleted_at is set

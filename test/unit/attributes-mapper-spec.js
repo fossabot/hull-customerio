@@ -91,4 +91,37 @@ describe("AttributesMapper", () => {
 
     assert.deepEqual(result, mappedAttribs);
   });
+
+  it("should map hull_segments by default", () => {
+    const attribMappings = [
+      "traits_salesforce_lead/title",
+      "first_name",
+      "last_name"
+    ];
+
+    const user = {
+      account: {
+        "clearbit/name": "Hull Inc",
+        "clearbit/geo_state": "Georgia"
+      },
+      first_name: "Thomas",
+      last_name: "Bass",
+      "traits_salesforce_lead/title": "Customer Success",
+      hull_segments: ["Foo", "Bar"]
+    };
+
+    const mappedAttribs = {
+      "salesforce_lead-title": "Customer Success",
+      first_name: "Thomas",
+      last_name: "Bass",
+      created_at: "1360013296",
+      email: "tb@hull.io",
+      hull_segments: ["Foo", "Bar"]
+    };
+
+    const mapper = new AttributesMapper(attribMappings);
+    const result = mapper.mapAttributesForService(user, "1360013296", "tb@hull.io");
+
+    assert.deepEqual(result, mappedAttribs);
+  });
 });
