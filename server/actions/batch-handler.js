@@ -5,6 +5,8 @@ export default function batchHandler({ ship, service: { syncAgent } }: Object, m
   const usersToSend = [];
   const filterSegments = _.get(ship, "private_settings.synchronized_segments");
 
+  // Do always check whitelisted segments, but only check users to delete
+  // if flag is set:
   if (_.get(ship, "private_settings.enable_user_deletion")) {
     const usersToDelete = [];
 
