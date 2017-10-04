@@ -1,6 +1,7 @@
 # 0.1.4
 - fix for whitelisted segments
 - account attributes are sent as distinct attributes rather than a nested object
+- updated documentation
 
 # 0.1.3
 - replace / with - to fix liquid template issues
