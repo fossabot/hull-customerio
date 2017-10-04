@@ -40,13 +40,13 @@ Note down the “Site ID” and “API Key” from the following page:
 ## How to set up the webhook to receive data from customer.io
 
 Navigate to the tab “Dashboard” on the Customer.io Connector in Hull and copy the displayed Webhook Url:
-![Webhooks Step 1](./docs/webhooks01.png)
+![Webhooks Step 1](./docs/webhook01.png)
 
 Open your customer.io dashboard, select “Integrations” from the menu to the left side of your screen and click the button “Settings” next to Email Activity Webhook:
-![Webhooks Step 2](./docs/webhooks02.png)
+![Webhooks Step 2](./docs/webhook02.png)
 
 On the next page, paste the Url obtained from Hull into the field “Webhook Endpoint”:
-![Webhooks Step 3](./docs/webhooks03.png)
+![Webhooks Step 3](./docs/webhook03.png)
 
 Click on the button “Send Test” and save your changes if the symbol indicates success.
 
