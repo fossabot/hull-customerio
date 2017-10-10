@@ -26,6 +26,10 @@ export default class CustomerioClient {
     return this.auth.username && this.auth.password;
   }
 
+  checkAuth() {
+    return this.request("https://track.customer.io/auth", "get");
+  }
+
   identify(userId: string, attributes: Object) {
     return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}`, "put", attributes);
   }
