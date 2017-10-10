@@ -33,6 +33,7 @@ export default function webhookHandler(req: Request, res: Response) {
   const eventPayload = { email_address, email_id, template_id, email_subject: subject, customer_id, campaign_id, campaign_name };
 
   const context = {
+    ip: "0",
     event_id,
     created_at: timestamp
   };
