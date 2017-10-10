@@ -2,6 +2,7 @@
 - fix for whitelisted segments
 - account attributes are sent as distinct attributes rather than a nested object
 - updated documentation
+- added /status endpoint
 
 # 0.1.3
 - replace / with - to fix liquid template issues
