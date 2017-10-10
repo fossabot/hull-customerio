@@ -11,6 +11,7 @@ export default function webhookHandler(req: Request, res: Response) {
     return Promise.resolve();
   }
 
+
   const { data: { email_address, email_id, customer_id, campaign_id, campaign_name, template_id, subject }, event_type, timestamp, event_id } = req.body;
 
   if (event_id === "abc123") {
@@ -35,6 +36,9 @@ export default function webhookHandler(req: Request, res: Response) {
     event_id,
     created_at: timestamp
   };
+
+
+  asUser.logger.debug("incoming.webhook", req.body);
 
   return asUser.track(eventName, eventPayload, context).then(() => {
     asUser.logger.info("incoming.event.success", eventName);
