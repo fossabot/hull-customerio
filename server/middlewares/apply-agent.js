@@ -7,19 +7,21 @@ import CustomerioClient from "../lib/customerio-client";
 
 export default function applyAgent(bottleneckCluster: Cluster) {
   return (req: Request, res: Response, next: Next) => {
-    req.hull = req.hull || {};
-    req.hull.service = req.hull.service || {};
+    if (req.hull && req.hull.ship) {
+      req.hull = req.hull || {};
+      req.hull.service = req.hull.service || {};
 
-    const bottleneck = bottleneckCluster.key(req.hull.ship.id);
+      const bottleneck = bottleneckCluster.key(req.hull.ship.id);
 
-    const customerioClient = new CustomerioClient(
-      _.get(req.hull.ship, "private_settings.site_id"),
-      _.get(req.hull.ship, "private_settings.api_key"),
-      bottleneck,
-      req.hull.client
-    );
+      const customerioClient = new CustomerioClient(
+        _.get(req.hull.ship, "private_settings.site_id"),
+        _.get(req.hull.ship, "private_settings.api_key"),
+        bottleneck,
+        req.hull.client
+      );
 
-    req.hull.service.syncAgent = new SyncAgent(req.hull, customerioClient);
+      req.hull.service.syncAgent = new SyncAgent(req.hull, customerioClient);
+    }
     return next();
   };
 }

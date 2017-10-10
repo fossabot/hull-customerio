@@ -6,11 +6,12 @@ import eventsMapping from "../mappings/events-mapping";
 
 export default function webhookHandler(req: Request, res: Response) {
   res.send();
+
   if (!req.body || !req.body.event_id) {
     return Promise.resolve();
   }
 
-  const { data: { email_address, customer_id, campaign_id, template_id, subject }, event_type, timestamp, event_id } = req.body;
+  const { data: { email_address, email_id, customer_id, campaign_id, campaign_name, template_id, subject }, event_type, timestamp, event_id } = req.body;
 
   if (event_id === "abc123") {
     req.hull.client.logger.debug("webhook endpoint subscribed");
@@ -28,7 +29,7 @@ export default function webhookHandler(req: Request, res: Response) {
 
   const asUser = req.hull.client.asUser({ email: user.email });
 
-  const eventPayload = { user, template_id, subject, customer_id, campaign_id };
+  const eventPayload = { email_address, email_id, template_id, email_subject: subject, customer_id, campaign_id, campaign_name };
 
   const context = {
     event_id,
@@ -40,5 +41,6 @@ export default function webhookHandler(req: Request, res: Response) {
     req.hull.metric.increment("ship.incoming.events", 1);
   }, (error) => {
     asUser.logger.error("incoming.event.error", error);
+    req.hull.metric.increment("ship.errors", 1);
   });
 }
