@@ -2,6 +2,7 @@
 import _ from "lodash";
 import moment from "moment";
 import CustomerioClient from "./customerio-client";
+import AttributesMapper from "./attributes-mapper";
 
 export default class SyncAgent {
   customerioClient: CustomerioClient;
@@ -21,6 +22,10 @@ export default class SyncAgent {
 
   isConfigured() {
     return this.customerioClient.isConfigured();
+  }
+
+  checkAuth() {
+    return this.customerioClient.checkAuth();
   }
 
   sendBatchOfUsers(messages: Array<Object>) {
@@ -68,18 +73,10 @@ export default class SyncAgent {
     const created_at = moment().format("X");
     const userIdent = { email };
 
-    let filteredHullUserTraits = _.pick(user, this.userAttributesMapping);
+    const mapper = new AttributesMapper(this.userAttributesMapping);
+    const payloadUser = _.merge({ email, hull_segments: segments.map(s => s.name) }, user);
 
-    if (!_.has(user, "traits_customerio/created_at") || _.has(user, "traits_customerio/deleted_at")) {
-      filteredHullUserTraits = _.merge({ created_at }, filteredHullUserTraits);
-    }
-    filteredHullUserTraits = _.mapKeys(_.merge({ email, hull_segments: segments.map(s => s.name) }, filteredHullUserTraits),
-      (value, key) => {
-        if (_.startsWith(key, "traits_")) {
-          return key.substr(7);
-        }
-        return key;
-      });
+    const filteredHullUserTraits = mapper.mapAttributesForService(payloadUser, created_at, email);
 
     return Promise.all(
       _.chunk(_.toPairs(filteredHullUserTraits), 30)

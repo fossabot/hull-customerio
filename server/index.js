@@ -9,8 +9,7 @@ import server from "./server";
 const {
   LOG_LEVEL,
   SECRET,
-  PORT,
-  OVERRIDE_FIREHOSE_URL,
+  PORT
 } = process.env;
 
 if (LOG_LEVEL) {
@@ -21,10 +20,7 @@ Hull.logger.transports.console.json = true;
 
 const options = {
   hostSecret: SECRET || "1234",
-  port: PORT || 8082,
-  clientConfig: {
-    firehoseUrl: OVERRIDE_FIREHOSE_URL
-  }
+  port: PORT || 8082
 };
 
 const app = express();

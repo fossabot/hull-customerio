@@ -1,7 +1,7 @@
 {
   "name": "hull-customerio",
   "description": "Sync users within customer.io service",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "homepage": "https://github.com/hull-ships/hull-customerio",
   "license": "MIT",
   "author": {
@@ -24,7 +24,7 @@
   "scripts": {
     "build": "npm run clean && npm run build:server",
     "build:server": "babel server -d build",
-    "start": "npm run build && node build",
+    "start": "node -r newrelic build",
     "start:dev": "NODE_ENV=development LOG_LEVEL=debug babel-watch -L server",
     "test": "npm run test:lint && npm run test:flow && npm run test:integration && npm run test:unit",
     "test:lint": "eslint server",
@@ -32,7 +32,8 @@
     "test:unit": "NODE_ENV=test mocha --require babel-register -R spec ./test/unit/*.js",
     "test:integration": "NODE_ENV=test mocha --require babel-register -R spec ./test/integration/*.js",
     "test:coverage": "nyc --babel-cache --hook-run-in-context false npm test",
-    "clean": "rimraf dist; rimraf lib"
+    "clean": "rimraf dist; rimraf lib",
+    "postinstall": "npm run build"
   },
   "keywords": [
     "hull",
@@ -53,7 +54,8 @@
     "bluebird": "^3.4.1",
     "bottleneck": "^1.16.0",
     "express": "^4.15.3",
-    "hull": "0.12.5",
+    "body-parser": "1.18.2",
+    "hull": "0.12.7",
     "lodash": "^4.13.1",
     "moment": "2.18.1",
     "rimraf": "^2.6.1"
@@ -61,7 +63,6 @@
   "devDependencies": {
     "assert": "^1.4.1",
     "babel-eslint": "^6.1.0",
-    "babel-loader": "^6.2.4",
     "babel-watch": "^2.0.5",
     "eslint": "^2.13.1",
     "eslint-config-airbnb-base": "^3.0.1",
