@@ -38,7 +38,6 @@ export default function webhookHandler(req: Request, res: Response) {
     created_at: timestamp
   };
 
-
   asUser.logger.debug("incoming.webhook", req.body);
 
   return asUser.track(eventName, eventPayload, context).then(() => {

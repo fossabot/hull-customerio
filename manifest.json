@@ -33,7 +33,7 @@
     },
     {
       "name": "synchronized_segments",
-      "title": "Segments",
+      "title": "Send users to Customer.io when belonging to one of these segments",
       "type": "array",
       "default": [],
       "format": "segment"
@@ -54,7 +54,7 @@
     },
     {
       "name": "events_filter",
-      "title": "Sends these events to Intercom",
+      "title": "Sends these events to Customer.io",
       "type": "array",
       "format": "event"
     },
@@ -99,6 +99,13 @@
   "subscriptions": [
     {
       "url": "/notify"
+    }
+  ],
+  "schedules" : [
+    {
+      "url": "/status",
+      "type": "cron",
+      "value": "*/30 * * * *"
     }
   ]
 }

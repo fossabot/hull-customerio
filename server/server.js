@@ -19,6 +19,8 @@ export default function server(app: express, { bottleneckCluster, hostSecret }: 
 
   app.all("/webhook", bodyParser.json(), webhookHandler);
 
+  app.all("/status", actions.statusCheck);
+
   app.use(requireConfiguration);
 
   app.use("/batch", notifHandler({

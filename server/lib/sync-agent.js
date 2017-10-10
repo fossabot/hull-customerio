@@ -24,6 +24,10 @@ export default class SyncAgent {
     return this.customerioClient.isConfigured();
   }
 
+  checkAuth() {
+    return this.customerioClient.checkAuth();
+  }
+
   sendBatchOfUsers(messages: Array<Object>) {
     return Promise.all(messages.map(message => this.sendAllUserProperties(message.user, message.segments)));
   }
