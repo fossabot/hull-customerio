@@ -7,6 +7,8 @@ import eventsMapping from "../mappings/events-mapping";
 export default function webhookHandler(req: Request, res: Response) {
   res.send();
 
+  const userIdMapping = _.get(req, "hull.ship.private_settings.user_id_mapping");
+
   if (!req.body || !req.body.event_id) {
     return Promise.resolve();
   }
@@ -28,7 +30,14 @@ export default function webhookHandler(req: Request, res: Response) {
     email: email_address
   };
 
-  const asUser = req.hull.client.asUser({ email: user.email });
+  const userIdent = {};
+  if (userIdMapping === "external_id") {
+    userIdent.external_id = customer_id;
+  } else {
+    userIdent.email = user.email;
+  }
+
+  const asUser = req.hull.client.asUser(userIdent);
 
   const eventPayload = { email_address, email_id, template_id, email_subject: subject, customer_id, campaign_id, campaign_name };
 
