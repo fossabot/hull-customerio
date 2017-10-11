@@ -7,7 +7,7 @@ import { middleware } from "../../../server/lib/crypto";
 
 export default function bootstrap() {
   const app = express();
-  const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" } });
+  const connector = new Connector({ hostSecret: "1234", port: 8000, clientConfig: { protocol: "http", firehoseUrl: "firehose" }, skipSignatureValidation: true });
   app.use(middleware(connector.hostSecret));
   connector.setupApp(app);
   server(app, { bottleneckCluster: new Cluster(30, 34), hostSecret: "1234" });

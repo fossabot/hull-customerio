@@ -1,5 +1,4 @@
 /* global describe, it, beforeEach, afterEach */
-
 import Minihull from "minihull";
 import assert from "assert";
 import axios from "axios";
