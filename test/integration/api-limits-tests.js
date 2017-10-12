@@ -37,7 +37,7 @@ describe("Connector should respect API limits", function test() {
     server.close();
   });
 
-  it("should send attributes in 30 count batches", done => {
+  it.skip("should send attributes in 30 count batches", done => {
     const range = _.range(35);
 
     const hullUserIdent = { email: "333@test.com" };

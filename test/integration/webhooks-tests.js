@@ -58,7 +58,8 @@ describe("Connector for webhooks endpoint", function test() {
           email_address: "example@customer.io",
           email_id: "example_email",
           subject: "Example Email",
-          template_id: "2"
+          template_id: "2",
+          campaign_name: "My Christmas campaign"
         },
         event_id: "abcd123",
         event_type: "email_sent",
@@ -72,11 +73,13 @@ describe("Connector for webhooks endpoint", function test() {
         const { type, body } = batch[0];
 
         assert.equal(type, "track");
+        assert.equal(body.properties.email_id, "example_email");
         assert.equal(body.properties.campaign_id, "1");
+        assert.equal(body.properties.campaign_name, "My Christmas campaign");
         assert.equal(body.properties.customer_id, "example_customer");
-        assert.equal(body.properties.subject, "Example Email");
+        assert.equal(body.properties.email_subject, "Example Email");
         assert.equal(body.properties.template_id, "2");
-        assert.equal(body.properties.user.email, "example@customer.io");
+        assert.equal(body.properties.email_address, "example@customer.io");
         assert.equal(body.event_id, "abcd123");
         assert.equal(body.created_at, 1500635446);
         assert.equal(body.event, "Email Sent");
@@ -142,4 +145,3 @@ describe("Connector for webhooks endpoint", function test() {
     }, 1500);
   });
 });
-

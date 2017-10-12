@@ -6,7 +6,7 @@ import moment from "moment";
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
-describe("Connector for notify endpoint", function test() {
+describe.skip("Connector for notify endpoint", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();

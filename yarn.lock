@@ -246,8 +246,8 @@ asynckit@^0.4.0:
   resolved "https://registry.yarnpkg.com/asynckit/-/asynckit-0.4.0.tgz#c79ed97f7f34cb8f2ba1bc9790bcc366474b4b79"
 
 aws-sdk@^2.100.0, aws-sdk@^2.81.0:
-  version "2.131.0"
-  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.131.0.tgz#5b213fa493ce36a88130b50bef0e9a0cb6cd9f72"
+  version "2.132.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.132.0.tgz#6ece84bf355a6626fc8ba24023809c08ca1ee372"
   dependencies:
     buffer "4.9.1"
     crypto-browserify "1.0.9"
@@ -1547,8 +1547,8 @@ crc@3.3.0:
   resolved "https://registry.yarnpkg.com/crc/-/crc-3.3.0.tgz#fa622e1bc388bf257309082d6b65200ce67090ba"
 
 cron-parser@^2.4.1:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-2.4.2.tgz#883c55143632fc71161231549a18a1e71c0d47ba"
+  version "2.4.3"
+  resolved "https://registry.yarnpkg.com/cron-parser/-/cron-parser-2.4.3.tgz#cae844c20117fc72c678f63ac83c7884be199e78"
   dependencies:
     is-nan "^1.2.1"
     moment-timezone "^0.5.0"
@@ -3661,8 +3661,8 @@ moment@2.18.1:
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.18.1.tgz#c36193dd3ce1c2eed2adb7c802dbbc77a81b1c0f"
 
 moment@2.x.x, "moment@>= 2.9.0", moment@^2.18.1:
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.19.0.tgz#44f675ef6b944942762581b1c179fb679e599d67"
+  version "2.19.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.19.1.tgz#56da1a2d1cbf01d38b7e1afc31c10bcfa1929167"
 
 morgan@~1.6.1:
   version "1.6.1"
