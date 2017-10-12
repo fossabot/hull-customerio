@@ -1,12 +1,12 @@
 /* global describe, it, beforeEach, afterEach */
-
 import Minihull from "minihull";
 import assert from "assert";
 import moment from "moment";
+
 import bootstrap from "./support/bootstrap";
 import CustomerioMock from "./support/customerio-mock";
 
-describe.skip("Connector for notify endpoint", function test() {
+describe("Connector for notify endpoint", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
@@ -26,11 +26,6 @@ describe.skip("Connector for notify endpoint", function test() {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
-    minihull.stubConnector({ id: "123456789012345678901234", private_settings });
-    minihull.stubSegments([{
-      name: "testSegment",
-      id: "hullSegmentId"
-    }]);
 
     setTimeout(() => {
       done();
@@ -49,12 +44,15 @@ describe.skip("Connector for notify endpoint", function test() {
       hull_segments: ["testSegment"]
     }, () => done());
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond" },
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    }).then(res => assert.equal(res.statusCode, 200));
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
   });
 
   it("should send events to customer.io", done => {
@@ -84,7 +82,7 @@ describe.skip("Connector for notify endpoint", function test() {
       }
     });
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
       changes: {},
       events: [{
@@ -107,20 +105,63 @@ describe.skip("Connector for notify endpoint", function test() {
         }
       }],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    }).then(() => {
-      setTimeout(() => {
-        createCustomerNock.done();
-        customerEventMock.done();
-        pageViewEventsMock.done();
-        done();
-      }, 1500);
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
+
+    setTimeout(() => {
+      createCustomerNock.done();
+      customerEventMock.done();
+      pageViewEventsMock.done();
+      done();
+    }, 1500);
+  });
+
+  it("should not send user if he was already sent", done => {
+    customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
+      first_name: "Olivia",
+      last_name: "Wilde"
     });
+
+    minihull.on("incoming.request", () => {
+      done(Error("incoming request should not happen !"));
+    });
+
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
+      user: {
+        email: "foo@bar.com",
+        test_id: "66666",
+        first_name: "Olivia",
+        last_name: "Wilde",
+        "traits_customerio/created_at": "66666"
+      },
+      changes: {
+        user: {
+          "traits_customerio/id": [null, "66666"]
+        }
+      },
+      events: [],
+      segments: [{ id: "hullSegmentId", name: "testSegment" }]
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
+
+    setTimeout(() => {
+      done();
+    }, 1500);
   });
 
   it("should delete user from customer.io if he does not match segments", done => {
-    const deleteNock = customerioMock.setUpDeleteCustomerNock("77777");
+    const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.on("incoming.request", () => {
+      deleteUserNock.done();
+      done();
+    });
+
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: {
         email: "foo@bar.com",
         test_id: "77777",
@@ -131,15 +172,10 @@ describe.skip("Connector for notify endpoint", function test() {
       changes: {},
       events: [],
       segments: []
-    }).then(() => {
-      minihull.on("incoming.request", req => {
-        const { body, type } = req.body.batch[0];
-        assert.equal(type, "traits");
-        assert(body["customerio/deleted_at"]);
-        deleteNock.done();
-        done();
-      });
-    });
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
   });
 
   it("should send anonymous event to customer.io", done => {
@@ -153,7 +189,7 @@ describe.skip("Connector for notify endpoint", function test() {
       }
     }, () => done());
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green" },
       changes: {},
       events: [{
@@ -166,18 +202,24 @@ describe.skip("Connector for notify endpoint", function test() {
         }
       }],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    }).then(res => assert.equal(res.statusCode, 200));
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
   });
 
   it("should send only email, created_at and hull_segments attributes if synchronized_attributes does not contains other fields", done => {
     customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", { hull_segments: ["testSegment"] }, () => done());
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    }).then(res => assert.equal(res.statusCode, 200));
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]);
   });
 
   it("should handle customerio api failure and not return 500", done => {
@@ -188,12 +230,15 @@ describe.skip("Connector for notify endpoint", function test() {
       request = req;
     });
 
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
+    minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
       changes: {},
       events: [],
       segments: []
-    }).then(() => {
+    }], [{
+      name: "testSegment",
+      id: "hullSegmentId"
+    }]).then(() => {
       setTimeout(() => {
         if (!request) {
           done(Error("expected request but got nothing"));

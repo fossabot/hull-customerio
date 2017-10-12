@@ -13,8 +13,8 @@ export default function webhookHandler(req: Request, res: Response) {
     return Promise.resolve();
   }
 
-
-  const { data: { email_address, email_id, customer_id, campaign_id, campaign_name, template_id, subject }, event_type, timestamp, event_id } = req.body;
+  const { data, event_type, timestamp, event_id } = req.body;
+  const { email_address, email_id, customer_id, campaign_id, campaign_name, template_id, subject } = data;
 
   if (event_id === "abc123") {
     req.hull.client.logger.debug("webhook endpoint subscribed");
