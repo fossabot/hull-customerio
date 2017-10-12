@@ -32,7 +32,7 @@ export default class AttributesMapper {
     }
 
     // Ensure that we don't skip hull_segments
-    if (!_.includes(this.userAttributesMapping)) {
+    if (!_.includes(this.userAttributesMapping, "hull_segments")) {
       this.userAttributesMapping.push("hull_segments");
     }
 
