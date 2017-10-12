@@ -46,7 +46,7 @@ describe("Connector should respect API limits", function test() {
     private_settings.synchronized_attributes = Object.keys(hullUserFields);
 
     const firstBatchNock = customerioMock.setUpIdentifyCustomerNock("33333", "333@test.com",
-      _.merge(_.pickBy(hullUserFields, v => v < 27, { hull_segments: ["testSegment"] })));
+      _.merge({ hull_segments: ["testSegment"] }, hullUserIdent, _.pickBy(hullUserFields, v => v < 27)));
 
     const secondBatchNock = customerioMock.setUpNextIdentifyBatchCustomerNock("33333", _.pickBy(hullUserFields, v => v >= 27));
 
@@ -60,7 +60,7 @@ describe("Connector should respect API limits", function test() {
         firstBatchNock.done();
         secondBatchNock.done();
         done();
-      }, 1500);
+      }, 1000);
     });
   });
 });
