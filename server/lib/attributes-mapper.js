@@ -37,11 +37,12 @@ export default class AttributesMapper {
     }
 
     let filteredAttributes = _.pick(user, this.userAttributesMapping);
+    filteredAttributes = _.merge({ email }, filteredAttributes);
 
     // Set created_at if not present or deleted_at is set
     if (!_.has(user, "traits_customerio/created_at") || _.has(user, "traits_customerio/deleted_at")) {
       const created_at = creationDate;
-      filteredAttributes = _.merge({ created_at, email }, filteredAttributes);
+      filteredAttributes = _.merge({ created_at }, filteredAttributes);
     }
 
     // Make attributes fail-safe
