@@ -32,16 +32,17 @@ export default class AttributesMapper {
     }
 
     // Ensure that we don't skip hull_segments
-    if (!_.includes(this.userAttributesMapping)) {
+    if (!_.includes(this.userAttributesMapping, "hull_segments")) {
       this.userAttributesMapping.push("hull_segments");
     }
 
     let filteredAttributes = _.pick(user, this.userAttributesMapping);
+    filteredAttributes = _.merge({ email }, filteredAttributes);
 
     // Set created_at if not present or deleted_at is set
     if (!_.has(user, "traits_customerio/created_at") || _.has(user, "traits_customerio/deleted_at")) {
       const created_at = creationDate;
-      filteredAttributes = _.merge({ created_at, email }, filteredAttributes);
+      filteredAttributes = _.merge({ created_at }, filteredAttributes);
     }
 
     // Make attributes fail-safe

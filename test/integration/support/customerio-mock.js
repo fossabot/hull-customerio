@@ -18,6 +18,9 @@ module.exports = function mocks() {
     setUpNextIdentifyBatchCustomerNock: (userId, attributes) => nock(API_PREFIX)
       .put(`/customers/${userId}`, attributes)
       .reply(200),
+    setUpAlreadyIdentifiedCustomerNock: (userId, attributes) => nock(API_PREFIX)
+      .put(`/customers/${userId}`, attributes)
+      .reply(200),
     setUpDeleteCustomerNock: (userId, callback) => nock(API_PREFIX)
       .delete(`/customers/${userId}`)
       .reply(200, () => {

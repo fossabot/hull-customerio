@@ -1,5 +1,4 @@
 /* global describe, it, beforeEach, afterEach */
-
 import Minihull from "minihull";
 import assert from "assert";
 import axios from "axios";
@@ -24,16 +23,12 @@ describe("Connector for webhooks endpoint", function test() {
   beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001);
+    minihull.listen(8001).then(done);
     minihull.stubConnector({ id: "123456789012345678901234", private_settings });
     minihull.stubSegments([{
       name: "testSegment",
       id: "hullSegmentId"
     }]);
-
-    setTimeout(() => {
-      done();
-    }, 1000);
   });
 
   afterEach(() => {
