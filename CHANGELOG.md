@@ -1,5 +1,6 @@
 # 0.1.5
 - update hull-node version to 0.13.2
+- enable smart-notifier in backward compatible way
 - make sure that we update `email` even for user which `customerio\created_at` trait
 
 # 0.1.4
