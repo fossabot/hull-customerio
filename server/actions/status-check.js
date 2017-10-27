@@ -3,7 +3,7 @@
 import { Request, Response } from "express";
 import _ from "lodash";
 
-export default function (req: Request, res: Response) {
+export default function statusCheckAction(req: Request, res: Response) {
   if (req.hull && req.hull.ship && req.hull.ship.private_settings) {
     const { ship = {}, client = {}, service = {} } = req.hull;
     const messages = [];
