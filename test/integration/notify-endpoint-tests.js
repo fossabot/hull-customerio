@@ -26,10 +26,6 @@ describe("Connector for notify endpoint", function test() {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001).then(done);
-
-    // setTimeout(() => {
-    //   done();
-    // }, 1000);
   });
 
   afterEach(() => {

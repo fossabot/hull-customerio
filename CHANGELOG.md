@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+## 0.1.7
+
+- upgrade hull to 0.13.10 - should handle unsupported notification channels more gracefully
+- upgrade flow and circleci configuration
+
 ## 0.1.6
 
 - [hotfix] make the configuration checking middleware respond correctly to smart-notifier

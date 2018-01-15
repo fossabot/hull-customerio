@@ -12,9 +12,10 @@ export default function checkConnectorConfiguration(req: Request, res: Response,
 
   if (syncAgent && !syncAgent.isConfigured()) {
     if (req.hull.smartNotifierResponse) {
-      const error = new SmartNotifierError(
-        "CONNECTOR_CONFIGURATION",
+      const error = new SmartNotifierError( // $FlowFixMe
+        "CONNECTOR_CONFIGURATION", // $FlowFixMe uppercase String in hull-node
         "Connector is not configured",
+        200,
         {
           type: "next",
           in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
