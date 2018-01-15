@@ -1,6 +1,8 @@
 {
-  "name": "Hull-customerio",
+  "name": "Customer.io",
   "description": "Supercharge your email engagement in Customer.io",
+  "source": "customerio",
+  "logo": "logo.png",
   "picture": "picture.png",
   "version": "0.1.6",
   "tags": [
