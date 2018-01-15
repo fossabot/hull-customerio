@@ -59,14 +59,14 @@ export default class SyncAgent {
   sendAllUserProperties(user: Object, segments: Array<Object>): Promise<*> {
     const email = _.get(user, "email");
     if (!email) {
-      this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing email" });
+      this.client.asUser(user).logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing email" });
       return Promise.resolve();
     }
 
     const userCustomerioId = this.getUsersCustomerioId(user);
 
     if (!userCustomerioId) {
-      this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing id" });
+      this.client.asUser(user).logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing id" });
       return Promise.resolve();
     }
 
