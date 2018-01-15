@@ -56,7 +56,7 @@ export default class SyncAgent {
     return this.idMapping;
   }
 
-  sendAllUserProperties(user: Object, segments: Array<Object>) {
+  sendAllUserProperties(user: Object, segments: Array<Object>): Promise<*> {
     const email = _.get(user, "email");
     if (!email) {
       this.client.logger.info("outgoing.user.skip", { id: user[this.idMapping], reason: "Missing email" });
@@ -102,7 +102,7 @@ export default class SyncAgent {
       .catch(err => this.client.asUser(userIdent).logger.error("outgoing.user.error", { traits: filteredHullUserTraits, errors: err.message }));
   }
 
-  deleteUser(user: Object) {
+  deleteUser(user: Object): Promise<*> {
     const id = this.getUsersCustomerioId(user);
 
     if (!id) {
@@ -130,7 +130,7 @@ export default class SyncAgent {
       .catch(err => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
   }
 
-  sendPageEvent(userIdent: Object, page: string, event: Object) {
+  sendPageEvent(userIdent: Object, page: string, event: Object): Promise<*> {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -146,7 +146,7 @@ export default class SyncAgent {
       .catch(err => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
   }
 
-  sendUserEvent(userIdent: Object, eventName: string, eventData: Object) {
+  sendUserEvent(userIdent: Object, eventName: string, eventData: Object): Promise<*> {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {

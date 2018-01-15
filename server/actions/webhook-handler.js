@@ -4,7 +4,7 @@ import _ from "lodash";
 
 import eventsMapping from "../mappings/events-mapping";
 
-export default function webhookHandler(req: Request, res: Response) {
+export default function webhookHandler(req: Request, res: Response): Promise<*> {
   res.send();
 
   const userIdMapping = _.get(req, "hull.ship.private_settings.user_id_mapping");
