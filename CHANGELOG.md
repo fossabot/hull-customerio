@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+## 0.1.8
+
+- make sure we pass account information to attributes mapper and to c.io
+
 ## 0.1.7
 
 - upgrade hull to 0.13.10 - should handle unsupported notification channels more gracefully

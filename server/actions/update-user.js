@@ -29,7 +29,8 @@ export default function updateUser({ client, service, ship }: Object, messages: 
   };
 
   const { syncAgent } = service;
-  return Promise.all(messages.map(({ user, segments, events, changes }) => {
+  return Promise.all(messages.map(({ user, segments, events, changes, account }) => {
+    user.account = account;
     const userPromises = [];
     if (!_.get(changes, "user['traits_customerio/created_at'][1]", false) || !_.get(changes, "user['traits_customerio/deleted_at'][1]", false)) {
       if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {

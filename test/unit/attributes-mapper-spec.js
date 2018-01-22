@@ -124,4 +124,37 @@ describe("AttributesMapper", () => {
 
     assert.deepEqual(result, mappedAttribs);
   });
+
+  it.only("should allow to map account name", () => {
+    const attribMappings = [
+      "email",
+      "first_name",
+      "last_name",
+      "account.name"
+    ];
+
+    const user = {
+      account: {
+        name: "Hull Inc",
+      },
+      first_name: "Thomas",
+      last_name: "Bass",
+      email: "tb@hull.io",
+      hull_segments: ["Foo", "Bar"]
+    };
+
+    const mappedAttribs = {
+      account_name: "Hull Inc",
+      first_name: "Thomas",
+      last_name: "Bass",
+      created_at: "1360013296",
+      email: "tb@hull.io",
+      hull_segments: ["Foo", "Bar"]
+    };
+
+    const mapper = new AttributesMapper(attribMappings);
+    const result = mapper.mapAttributesForService(user, "1360013296", "tb@hull.io");
+
+    assert.deepEqual(result, mappedAttribs);
+  });
 });
