@@ -70,7 +70,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    const created_at = moment().format("X");
+    const created_at = moment();
     const userIdent = { email };
 
     const mapper = new AttributesMapper(this.userAttributesMapping);

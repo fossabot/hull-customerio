@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+## 0.1.9
+
+- cast outgoing date traits ending with "_date" and "_at"
+
 ## 0.1.8
 
 - make sure we pass account information to attributes mapper and to c.io

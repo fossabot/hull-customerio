@@ -1,5 +1,6 @@
 /* @flow */
 import _ from "lodash";
+import moment from "moment";
 
 export default class AttributesMapper {
   userAttributesMapping: Array<string>;
@@ -46,11 +47,19 @@ export default class AttributesMapper {
     }
 
     // Make attributes fail-safe
-    const attributes = _.mapKeys(filteredAttributes, (value, key) => {
+    let attributes = _.mapKeys(filteredAttributes, (value, key) => {
       if (_.startsWith(key, "traits_")) {
         return key.substr(7).split("/").join("-");
       }
       return key.split("/").join("-");
+    });
+
+    // Cast dates
+    attributes = _.mapValues(attributes, (value, key) => {
+      if (_.endsWith(key, "_date") || _.endsWith(key, "_at")) {
+        return moment(value).format("X");
+      }
+      return value;
     });
 
     return attributes;
