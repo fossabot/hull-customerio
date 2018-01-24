@@ -56,7 +56,9 @@ export default class AttributesMapper {
 
     // Cast dates
     attributes = _.mapValues(attributes, (value, key) => {
-      if (_.endsWith(key, "_date") || _.endsWith(key, "_at")) {
+      if (key !== "created_at"
+        && (_.endsWith(key, "_date") || _.endsWith(key, "_at"))
+        && moment(value).isValid()) {
         return moment(value).format("X");
       }
       return value;

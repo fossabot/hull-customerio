@@ -1,6 +1,7 @@
 /* global describe, it */
 import AttributesMapper from "../../server/lib/attributes-mapper";
 import assert from "assert";
+import moment from "moment";
 
 describe("AttributesMapper", () => {
   it("should clear nested account attributes from mappings", () => {
