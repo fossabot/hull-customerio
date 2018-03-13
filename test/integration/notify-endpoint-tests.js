@@ -58,24 +58,12 @@ describe("Connector for notify endpoint", function test() {
       hull_segments: ["testSegment"]
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
-      context: {
-        page: "http://www.google.com"
-      },
-      properties: {
-        name: "Page Event",
-        some_property: "test",
-        url: "http://www.google.com"
-      },
-      event: "page"
+      name: "Page Event",
+      some_property: "test",
+      url: "http://www.google.com"
     });
     const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "custom", {
-      event: "custom",
-      context: {
-        context_property: "testify"
-      },
-      properties: {
-        name: "Custom Event"
-      }
+      name: "Custom Event"
     });
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
@@ -176,13 +164,7 @@ describe("Connector for notify endpoint", function test() {
 
   it("should send anonymous event to customer.io", done => {
     customerioMock.setUpSendAnonymousEventNock("anonymous", {
-      event: "anonymous",
-      context: {
-        some_field: "testing"
-      },
-      properties: {
-        name: "Anonymous Event"
-      }
+      name: "Anonymous Event"
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{

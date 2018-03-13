@@ -1,7 +1,6 @@
 /* @flow */
 import Hull from "hull";
 import express from "express";
-import { Cluster } from "bottleneck";
 import { middleware } from "./lib/crypto";
 
 import server from "./server";
@@ -24,11 +23,10 @@ const options = {
 };
 
 const app = express();
-const bottleneckCluster = new Cluster(30, 34);
 const connector = new Hull.Connector(options);
 
 app.use(middleware(connector.hostSecret));
 
 connector.setupApp(app);
-server(app, { bottleneckCluster, hostSecret: options.hostSecret });
+server(app, { hostSecret: options.hostSecret });
 connector.startApp(app);

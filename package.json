@@ -42,7 +42,6 @@
     "connector"
   ],
   "dependencies": {
-    "axios": "^0.16.2",
     "babel-cli": "^6.10.1",
     "babel-core": "^6.10.4",
     "babel-loader": "^6.2.4",
@@ -53,12 +52,13 @@
     "babel-register": "^6.9.0",
     "bluebird": "^3.4.1",
     "body-parser": "1.18.2",
-    "bottleneck": "^1.16.0",
     "express": "^4.15.3",
     "hull": "0.13.10",
     "lodash": "^4.13.1",
-    "moment": "2.18.1",
-    "rimraf": "^2.6.1"
+    "moment": "^2.21.0",
+    "rimraf": "^2.6.1",
+    "superagent": "^3.8.2",
+    "superagent-throttle": "^0.2.5"
   },
   "devDependencies": {
     "assert": "^1.4.1",
@@ -68,9 +68,7 @@
     "eslint-config-airbnb-base": "^3.0.1",
     "eslint-plugin-import": "^1.9.2",
     "flow-bin": "^0.63.1",
-    "hull-connector-tester": "^0.0.5",
-    "jwt-simple": "0.5.1",
-    "minihull": "^2.1.0",
+    "minihull": "^2.1.1",
     "mocha": "^3.4.2",
     "nock": "^9.0.14",
     "nyc": "^11.0.3",

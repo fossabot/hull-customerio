@@ -3,7 +3,7 @@
 import Minihull from "minihull";
 import assert from "assert";
 import bootstrap from "./support/bootstrap";
-import axios from "axios";
+import superagent from "superagent";
 
 describe("Connector Endpoints", function test() {
   let minihull;
@@ -41,7 +41,7 @@ describe("Connector Endpoints", function test() {
   });
 
   it("should return status ok for admin.html endpoint", done => {
-    axios.get("http://localhost:8000/admin.html").then(res => {
+    superagent.get("http://localhost:8000/admin.html").then(res => {
       assert.equal(res.status, 200);
       done();
     });

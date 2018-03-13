@@ -9,13 +9,13 @@ import * as actions from "./actions";
 import requireConfiguration from "./middlewares/check-connector-configuration";
 import { encrypt } from "./lib/crypto";
 
-export default function server(app: express, { bottleneckCluster, hostSecret }: Object) {
+export default function server(app: express, { hostSecret }: Object) {
   app.get("/admin.html", (req, res) => {
     const token = encrypt(req.hull.config, hostSecret);
     res.render("admin.html", { hostname: req.hostname, token });
   });
 
-  app.use(applyAgent(bottleneckCluster));
+  app.use(applyAgent());
 
   app.all("/webhook", bodyParser.json(), webhookHandler);
 

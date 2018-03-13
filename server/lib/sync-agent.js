@@ -130,7 +130,7 @@ export default class SyncAgent {
       .catch(err => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
   }
 
-  sendPageEvent(userIdent: Object, page: string, event: Object): Promise<*> {
+  sendPageEvent(userIdent: Object, page: string, eventData: Object): Promise<*> {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -138,7 +138,7 @@ export default class SyncAgent {
       return Promise.resolve();
     }
 
-    return this.customerioClient.sendPageViewEvent(id, page, event)
+    return this.customerioClient.sendPageViewEvent(id, page, eventData)
       .then(() => {
         this.client.asUser(userIdent).logger.info("outgoing.event.success");
         return this.metric.increment("ship.outgoing.events", 1);

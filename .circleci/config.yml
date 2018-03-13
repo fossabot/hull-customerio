@@ -28,4 +28,5 @@ jobs:
 
       # run tests!
       - run: yarn test
+      - run: npm i hull-connector-tester@latest
       - run: ./node_modules/.bin/hull-connector-tester

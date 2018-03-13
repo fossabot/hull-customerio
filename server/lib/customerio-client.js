@@ -1,25 +1,42 @@
 /* @flow */
-import axios from "axios";
-import Bottleneck from "bottleneck";
-import { Client } from "hull";
+const _ = require("lodash");
+const superagent = require("superagent");
+const { Client } = require("hull");
+const SuperagentThrottle = require("superagent-throttle");
 
-export default class CustomerioClient {
+const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin } = require("hull/lib/utils");
+
+class CustomerioClient {
   urlPrefix: string;
+  agent: superagent;
   auth: {
     username: string;
     password: string;
   };
-  bottleneck: Bottleneck;
   client: Client;
 
-  constructor(siteId: string, apiKey: string, bottleneck: Bottleneck, client: Client) {
+  constructor(ctx: Object) {
+    const siteId = _.get(ctx.ship, "private_settings.site_id");
+    const apiKey = _.get(ctx.ship, "private_settings.api_key");
     this.urlPrefix = "https://track.customer.io/api/v1";
+    this.client = ctx.client;
     this.auth = {
       username: siteId,
       password: apiKey
     };
-    this.bottleneck = bottleneck;
-    this.client = client;
+
+    const throttle = new SuperagentThrottle({
+      rate: 30,          // how many requests can be sent every `ratePer`
+      ratePer: 34000,   // number of ms in which `rate` requests may be sent
+    });
+    this.agent = superagent.agent()
+      .use(throttle.plugin(siteId))
+      .use(superagentUrlTemplatePlugin())
+      .use(superagentInstrumentationPlugin({ logger: this.client.logger, metric: ctx.metric }))
+      .set({ "Content-Type": "application/json" })
+      .auth(siteId, apiKey)
+      .ok(res => res.status === 200) // we reject the promise for all non 200 responses
+      .timeout({ response: 10000 });
   }
 
   isConfigured() {
@@ -27,54 +44,41 @@ export default class CustomerioClient {
   }
 
   checkAuth() {
-    return this.request("https://track.customer.io/auth", "get");
+    return this.agent.get("https://track.customer.io/auth");
   }
 
   identify(userId: string, attributes: Object) {
-    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}`, "put", attributes);
+    return this.agent.put(`${this.urlPrefix}/customers/${userId}`).send(attributes);
   }
 
   deleteUser(userId: string) {
-    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}`, "delete");
+    return this.agent.delete(`${this.urlPrefix}/customers/${userId}`);
   }
 
   sendPageViewEvent(userId: string, page: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}/events`, "post", {
-      type: "page",
-      name: page,
-      data: eventData
-    });
+    return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
+      .send({
+        type: "page",
+        name: page,
+        data: eventData
+      });
   }
 
   sendCustomerEvent(userId: string, eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/customers/${userId}/events`, "post", {
-      name: eventName,
-      data: eventData
-    });
+    return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
+      .send({
+        name: eventName,
+        data: eventData
+      });
   }
 
   sendAnonymousEvent(eventName: string, eventData: Object) {
-    return this.bottleneck.schedule(this.request.bind(this), `${this.urlPrefix}/events`, "post", {
-      name: eventName,
-      data: eventData
-    });
-  }
-
-  request(url: string, method: string, data: Object = {}) {
-    this.client.logger.debug("customerioClient.request", { method, url });
-    return axios({
-      method,
-      url,
-      withCredentials: true,
-      auth: this.auth,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      data
-    }).then(res => {
-      const status = res.status;
-      if (status !== 200) throw new Error(`Unhandled status code: ${status}`);
-      return res;
-    });
+    return this.agent.post(`${this.urlPrefix}/events`)
+      .send({
+        name: eventName,
+        data: eventData
+      });
   }
 }
+
+module.exports = CustomerioClient;
