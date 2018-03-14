@@ -1,20 +1,38 @@
 /* @flow */
-import { Request, Response } from "express";
-import _ from "lodash";
+import type {
+  $Request,
+  $Response
+} from "express";
 
-import eventsMapping from "../mappings/events-mapping";
+const _ = require("lodash");
+const Promise = require("bluebird");
 
-export default function webhookHandler(req: Request, res: Response): Promise<*> {
+const eventsMapping = require("../mappings/events-mapping");
+
+function webhookHandler(req: $Request, res: $Response): Promise<any> {
   res.send();
 
   const userIdMapping = _.get(req, "hull.ship.private_settings.user_id_mapping");
 
-  if (!req.body || !req.body.event_id) {
+  if (!_.get(req, "body.event_id")) {
     return Promise.resolve();
   }
 
-  const { data, event_type, timestamp, event_id } = req.body;
-  const { email_address, email_id, customer_id, campaign_id, campaign_name, template_id, subject } = data;
+  const {
+    data,
+    event_type,
+    timestamp,
+    event_id
+  } = req.body;
+  const {
+    email_address,
+    email_id,
+    customer_id,
+    campaign_id,
+    campaign_name,
+    template_id,
+    subject
+  } = data;
 
   if (event_id === "abc123") {
     req.hull.client.logger.debug("webhook endpoint subscribed");
@@ -39,7 +57,15 @@ export default function webhookHandler(req: Request, res: Response): Promise<*> 
 
   const asUser = req.hull.client.asUser(userIdent);
 
-  const eventPayload = { email_address, email_id, template_id, email_subject: subject, customer_id, campaign_id, campaign_name };
+  const eventPayload = {
+    email_address,
+    email_id,
+    template_id,
+    email_subject: subject,
+    customer_id,
+    campaign_id,
+    campaign_name
+  };
 
   const context = {
     ip: "0",
@@ -57,3 +83,5 @@ export default function webhookHandler(req: Request, res: Response): Promise<*> 
     req.hull.metric.increment("ship.errors", 1);
   });
 }
+
+module.exports = webhookHandler;

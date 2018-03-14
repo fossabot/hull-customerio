@@ -1,9 +1,9 @@
 /* @flow */
-import Hull from "hull";
-import express from "express";
-import { middleware } from "./lib/crypto";
+const Hull = require("hull");
+const express = require("express");
+const { middleware } = require("./lib/crypto");
 
-import server from "./server";
+const server = require("./server");
 
 const {
   LOG_LEVEL,

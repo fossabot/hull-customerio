@@ -1,12 +1,18 @@
 /* @flow */
-import _ from "lodash";
+import { IContext } from "../lib/types";
 
-export default function batchHandler({ ship, service: { syncAgent } }: Object, messages: Array<Object> = []) {
-  const filterSegments = _.get(ship, "private_settings.synchronized_segments");
+const _ = require("lodash");
+const SyncAgent = require("../lib/sync-agent");
+
+function batchHandler(ctx: IContext, messages: Array<Object> = []) {
+  const { ship = {}, client = {}, metric } = ctx;
+  const syncAgent = new SyncAgent(client, ship, metric);
+
+  const filterSegments = _.get(ship, "private_settings.synchronized_segments", []);
 
   // Do always check whitelisted segments, but only check users to delete
   // if flag is set:
-  if (_.get(ship, "private_settings.enable_user_deletion")) {
+  if (_.get(ship, "private_settings.enable_user_deletion", false)) {
     const usersToSend = [];
     const usersToDelete = [];
 
@@ -24,3 +30,5 @@ export default function batchHandler({ ship, service: { syncAgent } }: Object, m
 
   return syncAgent.sendBatchOfUsers(messages.map(m => ({ user: m.user, segments: m.segments })));
 }
+
+module.exports = batchHandler;

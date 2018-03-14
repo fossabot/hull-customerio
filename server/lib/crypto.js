@@ -1,23 +1,26 @@
-import crypto from "crypto";
-import qs from "querystring";
+/* @flow */
+
+const crypto = require("crypto");
+const qs = require("querystring");
 
 const algorithm = "aes-128-cbc";
 
-export function encrypt(text, password) {
+
+function encrypt(text: any, password: any): string {
   const cipher = crypto.createCipher(algorithm, password);
   let crypted = cipher.update(qs.stringify(text), "utf8", "base64");
   crypted += cipher.final("base64");
   return encodeURIComponent(crypted);
 }
 
-export function decrypt(text, password) {
+function decrypt(text: string, password: any): any {
   const decipher = crypto.createDecipher(algorithm, password);
   let dec = decipher.update(decodeURIComponent(text), "base64", "utf8");
   dec += decipher.final("utf8");
   return qs.parse(dec);
 }
 
-export function middleware(password) {
+function middleware(password: any) {
   return (req, res, next) => {
     if (req.query.conf) {
       req.hull = req.hull || {};
@@ -26,3 +29,9 @@ export function middleware(password) {
     next();
   };
 }
+
+module.exports = {
+  encrypt,
+  decrypt,
+  middleware
+};

@@ -1,5 +1,4 @@
-/* @flow */
-export default {
+module.exports = {
   customer_subscribed: "Customer Subscribed",
   customer_unsubscribed: "Customer Unsubscribed",
   email_attempted: "Email Attempted",

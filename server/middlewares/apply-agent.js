@@ -1,10 +1,10 @@
 /* @flow */
-import { Request, Response, Next } from "express";
+import { $Request, $Response, $Next } from "express";
 import SyncAgent from "../lib/sync-agent";
 import CustomerioClient from "../lib/customerio-client";
 
 export default function applyAgent() {
-  return (req: Request, res: Response, next: Next) => {
+  return (req: $Request, res: $Response, next: $Next) => {
     if (req.hull && req.hull.ship) {
       req.hull = req.hull || {};
       req.hull.service = req.hull.service || {};

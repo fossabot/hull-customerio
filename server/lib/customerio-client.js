@@ -1,4 +1,6 @@
 /* @flow */
+import type { IServiceCredentials, IMetricsClient } from "./types";
+
 const _ = require("lodash");
 const superagent = require("superagent");
 const { Client } = require("hull");
@@ -7,77 +9,144 @@ const SuperagentThrottle = require("superagent-throttle");
 const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin } = require("hull/lib/utils");
 
 class CustomerioClient {
+  /**
+   * Gets or sets the url prefix for all API calls.
+   *
+   * @type {string}
+   * @memberof CustomerioClient
+   */
   urlPrefix: string;
+
+  /**
+   * Gets or sets the instance of superagent to use for API calls.
+   *
+   * @type {superagent}
+   * @memberof CustomerioClient
+   */
   agent: superagent;
-  auth: {
-    username: string;
-    password: string;
-  };
+
+  /**
+   * Gets or sets the credentials to authenticate with customer.io.
+   *
+   * @type {IServiceCredentials}
+   * @memberof CustomerioClient
+   */
+  auth: IServiceCredentials;
   client: Client;
 
-  constructor(ctx: Object) {
-    const siteId = _.get(ctx.ship, "private_settings.site_id");
-    const apiKey = _.get(ctx.ship, "private_settings.api_key");
+  constructor(client: any, connector: any, metric: IMetricsClient) {
+    const siteId = _.get(connector, "private_settings.site_id", "n/a");
+    const apiKey = _.get(connector, "private_settings.api_key", "n/a");
     this.urlPrefix = "https://track.customer.io/api/v1";
-    this.client = ctx.client;
+    this.client = client;
     this.auth = {
       username: siteId,
       password: apiKey
     };
 
     const throttle = new SuperagentThrottle({
-      rate: 30,          // how many requests can be sent every `ratePer`
-      ratePer: 34000,   // number of ms in which `rate` requests may be sent
+      rate: 30, // how many requests can be sent every `ratePer`
+      ratePer: 34000, // number of ms in which `rate` requests may be sent
     });
+
     this.agent = superagent.agent()
       .use(throttle.plugin(siteId))
       .use(superagentUrlTemplatePlugin())
-      .use(superagentInstrumentationPlugin({ logger: this.client.logger, metric: ctx.metric }))
+      .use(superagentInstrumentationPlugin({ logger: this.client.logger, metric }))
       .set({ "Content-Type": "application/json" })
       .auth(siteId, apiKey)
       .ok(res => res.status === 200) // we reject the promise for all non 200 responses
       .timeout({ response: 10000 });
   }
 
-  isConfigured() {
-    return this.auth.username && this.auth.password;
+  /**
+   * Checks whether the client is basically configured
+   * and could potentially make calls against the API.
+   *
+   * @returns {boolean} True if username and password are present; otherwise false.
+   * @memberof CustomerioClient
+   */
+  isConfigured(): boolean {
+    const hasUsername: boolean = (this.auth.username !== "n/a");
+    const hasPassword: boolean = (this.auth.password !== "n/a");
+    return hasUsername && hasPassword;
   }
 
-  checkAuth() {
+  /**
+   * Performs a call against the API to check the authorization
+   * and returns the response.
+   *
+   * @returns {*} The response from the API.
+   * @memberof CustomerioClient
+   */
+  checkAuth(): any {
     return this.agent.get("https://track.customer.io/auth");
   }
 
-  identify(userId: string, attributes: Object) {
+  /**
+   * Performs a call against the API to update a customer.
+   *
+   * @param {string} userId The unique identifier for the customer
+   * @param {Object} attributes Custom attributes to define the customer
+   * @returns { Promise<any> } The response from the customer.io API.
+   * @memberof CustomerioClient
+   */
+  identify(userId: string, attributes: Object): Promise<any> {
     return this.agent.put(`${this.urlPrefix}/customers/${userId}`).send(attributes);
   }
 
-  deleteUser(userId: string) {
+  /**
+   * Performs a call against the API to delete a customer.
+   *
+   * @param {string} userId The unique identifier for the customer
+   * @returns { Promise<any> } The response from the customer.io API.
+   * @memberof CustomerioClient
+   */
+  deleteUser(userId: string): Promise<any> {
     return this.agent.delete(`${this.urlPrefix}/customers/${userId}`);
   }
 
-  sendPageViewEvent(userId: string, page: string, eventData: Object) {
+  /**
+   * Performs a call against the API to send a page view event.
+   *
+   * @param {string} userId The unique identifier for the customer
+   * @param {string} name The name of the page to track
+   * @param {Object} data Custom data to include with the page view
+   * @returns { Response } The response from the customer.io API.
+   * @memberof CustomerioClient
+   */
+  sendPageViewEvent(userId: string, name: string, data: any): Response {
     return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
-      .send({
-        type: "page",
-        name: page,
-        data: eventData
-      });
+      .send({ type: "page", name, data });
   }
 
-  sendCustomerEvent(userId: string, eventName: string, eventData: Object) {
+  /**
+   * Performs a call against the API to send an event to Customer.io
+   * outside of the browser.
+   *
+   * @param {string} userId The unique identifier for the customer
+   * @param {string} name The name of the event to track
+   * @param {Object} data Custom data to include with the event
+   * @returns { Response } The response from the customer.io API.
+   * @memberof CustomerioClient
+   */
+  sendCustomerEvent(userId: string, name: string, data: Object): Response {
     return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
-      .send({
-        name: eventName,
-        data: eventData
-      });
+      .send({ name, data });
   }
 
-  sendAnonymousEvent(eventName: string, eventData: Object) {
+  /**
+   * Performs a call against the API to send anonymous events without
+   * a customer ID.
+   *
+   * @param {string} name The name of the event to track
+   * @param {Object} data Custom data to include with the event
+   * @returns {Response} The response from the customer.io API.
+   * @memberof CustomerioClient
+   */
+  sendAnonymousEvent(name: string, data: Object): Response {
     return this.agent.post(`${this.urlPrefix}/events`)
-      .send({
-        name: eventName,
-        data: eventData
-      });
+      .send({ name, data });
   }
 }
 

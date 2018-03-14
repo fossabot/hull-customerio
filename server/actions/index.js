@@ -1,4 +1,12 @@
-export batchHandler from "./batch-handler";
-export updateUser from "./update-user";
-export webhookHandler from "./webhook-handler";
-export statusCheck from "./status-check";
+const batchHandler = require("./batch-handler");
+const updateUser = require("./update-user");
+const webhookHandler = require("./webhook-handler");
+const statusCheck = require("./status-check");
+
+module.exports = {
+  batchHandler,
+  updateUser,
+  webhookHandler,
+  statusCheck
+};
+
