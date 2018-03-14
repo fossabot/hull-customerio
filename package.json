@@ -49,7 +49,7 @@
     "bluebird": "^3.4.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
-    "hull": "0.13.10",
+    "hull": "https://495-10318703-gh.circle-artifacts.com/0/hull-node.tgz",
     "lodash": "^4.17.5",
     "moment": "^2.21.0",
     "newrelic": "^2.4.1",
