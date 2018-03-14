@@ -1,10 +1,12 @@
 /* @flow */
-import { $Request, $Response, $Next } from "express";
-import SyncAgent from "../lib/sync-agent";
-import CustomerioClient from "../lib/customerio-client";
+import type { $Response, NextFunction } from "express";
+import type { TRequest } from "hull";
 
-export default function applyAgent() {
-  return (req: $Request, res: $Response, next: $Next) => {
+const SyncAgent = require("../lib/sync-agent");
+const CustomerioClient = require("../lib/customerio-client");
+
+function applyAgent(): Function {
+  return (req: TRequest, res: $Response, next: NextFunction) => {
     if (req.hull && req.hull.ship) {
       req.hull = req.hull || {};
       req.hull.service = req.hull.service || {};
@@ -16,3 +18,5 @@ export default function applyAgent() {
     return next();
   };
 }
+
+module.exports = applyAgent;

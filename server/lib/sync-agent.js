@@ -1,5 +1,5 @@
 /* @flow */
-
+import type { TReqContext } from "hull";
 import type { IMetricsClient } from "./types";
 
 const _ = require("lodash");
@@ -31,7 +31,7 @@ class SyncAgent {
    * @type {*}
    * @memberof SyncAgent
    */
-  client: any;
+  client: Object;
 
   /**
    * Gets or sets the trait which is used as unique identifier in customer.io.
@@ -49,28 +49,28 @@ class SyncAgent {
    */
   userAttributesMapping: Array<string>;
 
-  constructor(client: any, connector: any, metric: IMetricsClient) {
-    this.customerioClient = new CustomerioClient(client, connector, metric);
-    this.metric = metric;
-    this.client = client;
+  constructor(ctx: TReqContext, customerioClient: CustomerioClient) {
+    this.customerioClient = customerioClient;
+    this.metric = ctx.metric;
+    this.client = ctx.client;
 
-    this.idMapping = _.get(connector, "private_settings.user_id_mapping", "external_id");
-    this.userAttributesMapping = _.get(connector, "private_settings.synchronized_attributes", []);
+    this.idMapping = _.get(ctx.ship, "private_settings.user_id_mapping", "external_id");
+    this.userAttributesMapping = _.get(ctx.ship, "private_settings.synchronized_attributes", []);
   }
 
   isConfigured(): boolean {
     return this.customerioClient.isConfigured();
   }
 
-  checkAuth(): any {
+  checkAuth(): Promise<*> {
     return this.customerioClient.checkAuth();
   }
 
-  sendBatchOfUsers(messages: Array<Object>): Promise<any> {
+  sendBatchOfUsers(messages: Array<Object>): Promise<*> {
     return Promise.all(messages.map(message => this.sendAllUserProperties(message.user, message.segments)));
   }
 
-  deleteBatchOfUsers(users: Array<Object>): Promise<any> {
+  deleteBatchOfUsers(users: Array<Object>): Promise<*> {
     return Promise.all(users.filter(user => {
       if (_.has(user, "traits_customerio/deleted_at")) {
         this.client.asUser(user).logger.info("outgoing.deletion.skip", { reason: "User has been already deleted from customer.io." });
@@ -90,10 +90,10 @@ class SyncAgent {
    * Returns the trait which is used as the unique identifier in customer.io.
    *
    * @param {Object} user The hull user.
-   * @returns {*} The unique identifier for customer.io.
+   * @returns {string} The unique identifier for customer.io.
    * @memberof SyncAgent
    */
-  getUsersCustomerioId(user: Object): any {
+  getUsersCustomerioId(user: Object): string {
     return _.get(user, this.idMapping);
   }
 
@@ -107,7 +107,7 @@ class SyncAgent {
     return this.idMapping;
   }
 
-  sendAllUserProperties(user: Object, segments: Array<Object>): Promise<any> {
+  sendAllUserProperties(user: Object, segments: Array<Object>): Promise<*> {
     const email = _.get(user, "email");
     const serviceId = this.getUsersCustomerioId(user);
 
@@ -142,22 +142,24 @@ class SyncAgent {
         return this.customerioClient.identify(userCustomerioId, userData);
       })).then(() => {
       if (_.has(user, "traits_customerio/deleted_at")) {
-        asUser(userIdent).traits({ "customerio/deleted_at": null, "customerio/created_at": created_at });
         this.metric.increment("ship.outgoing.users", 1);
-        return asUser(userIdent).logger.info("outgoing.user.success", { traits: filteredHullUserTraits });
+        return asUser.traits({ "customerio/deleted_at": null, "customerio/created_at": created_at })
+          .then(() => asUser.logger.info("outgoing.user.success", { traits: filteredHullUserTraits }))
+          .catch(error => asUser.logger.error("outgoing.user.error", { error }));
       } else if (_.has(filteredHullUserTraits, "created_at")) {
-        asUser(userIdent).traits({ "customerio/created_at": created_at });
         this.metric.increment("ship.outgoing.users", 1);
-        return asUser(userIdent).logger.info("outgoing.user.success", { traits: filteredHullUserTraits });
+        return asUser.traits({ "customerio/created_at": created_at })
+          .then(() => asUser.logger.info("outgoing.user.success", { traits: filteredHullUserTraits }))
+          .catch(error => asUser.logger.error("outgoing.user.error", { error }));
       }
 
       return {};
     }).catch(err => {
-      asUser(userIdent).logger.error("outgoing.user.error", { traits: filteredHullUserTraits, errors: err.message });
+      return asUser.logger.error("outgoing.user.error", { traits: filteredHullUserTraits, errors: err.message });
     });
   }
 
-  deleteUser(user: Object): Promise<any> {
+  deleteUser(user: Object): Promise<*> {
     const id = this.getUsersCustomerioId(user);
 
     if (!id) {
@@ -176,7 +178,7 @@ class SyncAgent {
       .catch(err => this.client.asUser(user).logger.error("user.deletion.error", { errors: err.message }));
   }
 
-  sendAnonymousEvent(eventName: string, eventData: Object): Promise<any> {
+  sendAnonymousEvent(eventName: string, eventData: Object): Promise<*> {
     return this.customerioClient.sendAnonymousEvent(eventName, eventData)
       .then(() => {
         this.client.logger.info("outgoing.event.success", { eventName, eventData });
@@ -185,7 +187,7 @@ class SyncAgent {
       .catch(err => this.client.logger.error("outgoing.event.error", { eventName, eventData, errors: err.message }));
   }
 
-  sendPageEvent(userIdent: Object, page: string, eventData: Object): Promise<any> {
+  sendPageEvent(userIdent: Object, page: string, eventData: Object): Promise<*> {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {
@@ -201,7 +203,7 @@ class SyncAgent {
       .catch(err => this.client.asUser(userIdent).logger.error("outgoing.event.error", { errors: err.message }));
   }
 
-  sendUserEvent(userIdent: Object, eventName: string, eventData: Object): Promise<any> {
+  sendUserEvent(userIdent: Object, eventName: string, eventData: Object): Promise<*> {
     const id = this.getUsersCustomerioId(userIdent);
 
     if (!id) {

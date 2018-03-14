@@ -1,15 +1,13 @@
 /* @flow */
-import type {
-  $Request,
-  $Response
-} from "express";
+import type { $Response } from "express";
+import type { TRequest } from "hull";
 
 const _ = require("lodash");
 const Promise = require("bluebird");
 
 const eventsMapping = require("../mappings/events-mapping");
 
-function webhookHandler(req: $Request, res: $Response): Promise<any> {
+function webhookHandler(req: TRequest, res: $Response): Promise<*> {
   res.send();
 
   const userIdMapping = _.get(req, "hull.ship.private_settings.user_id_mapping");

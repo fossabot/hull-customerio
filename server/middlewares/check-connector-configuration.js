@@ -1,9 +1,11 @@
 /* @flow */
-import _ from "lodash";
-import { Request, Response, Next } from "express";
-import { SmartNotifierError } from "hull/lib/utils/smart-notifier-response";
+import type { $Response, NextFunction } from "express";
+import type { TRequest } from "hull";
 
-export default function checkConnectorConfiguration(req: Request, res: Response, next: Next) {
+const _ = require("lodash");
+const { SmartNotifierError } = require("hull/lib/utils/smart-notifier-response");
+
+export default function checkConnectorConfiguration(req: TRequest, res: $Response, next: NextFunction) {
   if (req.hull.message && req.hull.message.Type === "SubscriptionConfirmation") {
     return next();
   }

@@ -79,5 +79,8 @@
     "include": [
       "server"
     ]
+  },
+  "resolutions": {
+    "cache-manager": "2.6.0"
   }
 }

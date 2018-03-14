@@ -1,13 +1,12 @@
 /* @flow */
-import { IContext } from "../lib/types";
+import type { TReqContext, THullUserUpdateMessage } from "hull";
 
 const _ = require("lodash");
 const Promise = require("bluebird");
-const SyncAgent = require("../lib/sync-agent");
 
-function updateUser(ctx: IContext, messages: Array<Object>): Promise<any> {
-  const { ship = {}, client = {}, metric } = ctx;
-  const syncAgent = new SyncAgent(client, ship, metric);
+function updateUser(ctx: TReqContext, messages: Array<THullUserUpdateMessage>): Promise<*> {
+  const { ship, client } = ctx;
+  const { syncAgent } = ctx.service;
 
   const shouldSendAnonymousEvents = _.get(ship, "private_settings.anonymous_events", false);
   const filterSegments = _.get(ship, "private_settings.synchronized_segments", []);

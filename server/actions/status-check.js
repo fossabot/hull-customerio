@@ -1,19 +1,17 @@
 /* @flow */
-import type { $Request, $Response } from "express";
-import type { IMetricsClient } from "../lib/types";
+import type { $Response } from "express";
+import type { TRequest } from "hull";
 
 const _ = require("lodash");
 const Promise = require("bluebird");
-const SyncAgent = require("../lib/sync-agent");
 
-function statusCheckAction(req: $Request, res: $Response): Promise<any> {
+function statusCheckAction(req: TRequest, res: $Response): Promise<*> {
   if (_.has(req, "hull.ship.private_settings")) {
-    const { ship = {}, client = {}, metric } = (req: any).hull;
+    const { ship, client } = req.hull;
+    const { syncAgent } = req.hull.service;
     const messages: Array<string> = [];
     let status: string = "ok";
     const promises: Array<Promise> = [];
-
-    const agent = new SyncAgent(client, ship, (metric: IMetricsClient));
 
     if (_.isEmpty(_.get(ship, "private_settings.synchronized_segments", []))) {
       if (status !== "error") {
@@ -22,11 +20,11 @@ function statusCheckAction(req: $Request, res: $Response): Promise<any> {
       messages.push("No users will be synchronized because you have not specified at least one whitelisted segment in Settings.");
     }
 
-    if (!agent.isConfigured()) {
+    if (!syncAgent.isConfigured()) {
       status = "error";
       messages.push("Missing Credentials: Site ID or API Key are not configured in Settings.");
     } else {
-      promises.push(agent.checkAuth()
+      promises.push(syncAgent.checkAuth()
         .then(() => {
 
         }).catch(err => {

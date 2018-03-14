@@ -17,9 +17,3 @@ export interface IServiceCredentials {
   username: string;
   password: string;
 }
-
-export interface IContext {
-  ship: any;
-  client: any;
-  metric: IMetricsClient;
-}

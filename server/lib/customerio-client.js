@@ -1,5 +1,6 @@
 /* @flow */
-import type { IServiceCredentials, IMetricsClient } from "./types";
+import type { TReqContext } from "hull";
+import type { IServiceCredentials } from "./types";
 
 const _ = require("lodash");
 const superagent = require("superagent");
@@ -34,11 +35,12 @@ class CustomerioClient {
   auth: IServiceCredentials;
   client: Client;
 
-  constructor(client: any, connector: any, metric: IMetricsClient) {
-    const siteId = _.get(connector, "private_settings.site_id", "n/a");
-    const apiKey = _.get(connector, "private_settings.api_key", "n/a");
+  constructor(ctx: TReqContext) {
+    const { metric } = ctx;
+    const siteId = _.get(ctx.ship, "private_settings.site_id", "n/a");
+    const apiKey = _.get(ctx.ship, "private_settings.api_key", "n/a");
     this.urlPrefix = "https://track.customer.io/api/v1";
-    this.client = client;
+    this.client = ctx.client;
     this.auth = {
       username: siteId,
       password: apiKey
@@ -79,7 +81,7 @@ class CustomerioClient {
    * @returns {*} The response from the API.
    * @memberof CustomerioClient
    */
-  checkAuth(): any {
+  checkAuth(): Promise<*> {
     return this.agent.get("https://track.customer.io/auth");
   }
 
@@ -91,7 +93,7 @@ class CustomerioClient {
    * @returns { Promise<any> } The response from the customer.io API.
    * @memberof CustomerioClient
    */
-  identify(userId: string, attributes: Object): Promise<any> {
+  identify(userId: string, attributes: Object): Promise<*> {
     return this.agent.put(`${this.urlPrefix}/customers/${userId}`).send(attributes);
   }
 
@@ -102,7 +104,7 @@ class CustomerioClient {
    * @returns { Promise<any> } The response from the customer.io API.
    * @memberof CustomerioClient
    */
-  deleteUser(userId: string): Promise<any> {
+  deleteUser(userId: string): Promise<*> {
     return this.agent.delete(`${this.urlPrefix}/customers/${userId}`);
   }
 
@@ -115,7 +117,7 @@ class CustomerioClient {
    * @returns { Response } The response from the customer.io API.
    * @memberof CustomerioClient
    */
-  sendPageViewEvent(userId: string, name: string, data: any): Response {
+  sendPageViewEvent(userId: string, name: string, data: any): Promise<*> {
     return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
       .send({ type: "page", name, data });
   }
@@ -130,7 +132,7 @@ class CustomerioClient {
    * @returns { Response } The response from the customer.io API.
    * @memberof CustomerioClient
    */
-  sendCustomerEvent(userId: string, name: string, data: Object): Response {
+  sendCustomerEvent(userId: string, name: string, data: Object): Promise<*> {
     return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
       .send({ name, data });
   }
@@ -144,7 +146,7 @@ class CustomerioClient {
    * @returns {Response} The response from the customer.io API.
    * @memberof CustomerioClient
    */
-  sendAnonymousEvent(name: string, data: Object): Response {
+  sendAnonymousEvent(name: string, data: Object): Promise<*> {
     return this.agent.post(`${this.urlPrefix}/events`)
       .send({ name, data });
   }

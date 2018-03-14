@@ -1,12 +1,11 @@
 /* @flow */
-import type { IContext } from "../lib/types";
+import type { TReqContext, THullUserUpdateMessage } from "hull";
 
 const _ = require("lodash");
-const SyncAgent = require("../lib/sync-agent");
 
-function batchHandler(ctx: IContext, messages: Array<Object> = []) {
-  const { ship = {}, client = {}, metric } = ctx;
-  const syncAgent = new SyncAgent(client, ship, metric);
+function batchHandler(ctx: TReqContext, messages: Array<THullUserUpdateMessage> = []) {
+  const { ship = {} } = ctx;
+  const { syncAgent } = ctx.service;
 
   const filterSegments = _.get(ship, "private_settings.synchronized_segments", []);
 
