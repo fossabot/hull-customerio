@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-import Minihull from "minihull";
-import assert from "assert";
-import moment from "moment";
+const Minihull = require("minihull");
+const assert = require("assert");
+const moment = require("moment");
 
-import bootstrap from "./support/bootstrap";
-import CustomerioMock from "./support/customerio-mock";
+const bootstrap = require("./support/bootstrap");
+const CustomerioMock = require("./support/customerio-mock");
 
 describe("Connector for notify endpoint", function test() {
   let minihull;
@@ -41,7 +41,9 @@ describe("Connector for notify endpoint", function test() {
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond" },
+      user: {
+        email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond"
+      },
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
@@ -67,7 +69,9 @@ describe("Connector for notify endpoint", function test() {
     });
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
+      user: {
+        email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry"
+      },
       changes: {},
       events: [{
         event: "page",
@@ -137,7 +141,7 @@ describe("Connector for notify endpoint", function test() {
     }, 1500);
   });
 
-  it("should delete user from customer.io if he does not match segments", done => {
+  it("should delete user = require(customer.io if he does not match segments", done => {
     const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
     minihull.on("incoming.request", () => {
@@ -168,7 +172,9 @@ describe("Connector for notify endpoint", function test() {
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green" },
+      user: {
+        email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green"
+      },
       changes: {},
       events: [{
         event: "anonymous",

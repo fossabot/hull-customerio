@@ -1,6 +1,6 @@
 /* global describe, it */
-import AttributesMapper from "../../server/lib/attributes-mapper";
-import assert from "assert";
+const AttributesMapper = require("../../server/lib/attributes-mapper");
+const assert = require("assert");
 
 describe("AttributesMapper", () => {
   it("should clear nested account attributes from mappings", () => {

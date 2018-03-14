@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
 
-import Minihull from "minihull";
-import moment from "moment";
+const Minihull = require("minihull");
+const moment = require("moment");
 
-import bootstrap from "./support/bootstrap";
-import CustomerioMock from "./support/customerio-mock";
+const bootstrap = require("./support/bootstrap");
+const CustomerioMock = require("./support/customerio-mock");
 
 describe("Connector for batch endpoint if user deletion is enabled", function test() {
   let minihull;
@@ -56,10 +56,20 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
 
     minihull.stubBatch([{
-      email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "Veitch",
+      email: "222@test.com",
+      id: "22222",
+      external_id: "1",
+      anonymous_id: "2",
+      first_name: "James",
+      last_name: "Veitch",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "44444", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Snow",
+      email: "444@test.com",
+      id: "44444",
+      external_id: "3",
+      anonymous_id: "4",
+      first_name: "John",
+      last_name: "Snow",
       segment_ids: ["hullSegmentId"]
     }]);
 
@@ -76,7 +86,12 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     const deleteNock = customerioMock.setUpDeleteCustomerNock("44444");
 
     minihull.stubBatch([{
-      email: "444@test.com", id: "44444", external_id: "1", anonymous_id: "2", first_name: "John", last_name: "Snow",
+      email: "444@test.com",
+      id: "44444",
+      external_id: "1",
+      anonymous_id: "2",
+      first_name: "John",
+      last_name: "Snow",
       segment_ids: []
     }]);
 
@@ -103,11 +118,22 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     const secondCustomerDeleteNock = customerioMock.setUpDeleteCustomerNock("55555");
 
     minihull.stubBatch([{
-      email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "First",
+      email: "222@test.com",
+      id: "22222",
+      external_id: "1",
+      anonymous_id: "2",
+      first_name: "James",
+      last_name: "First",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "55555", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Second",
-      segment_ids: [], "traits_customerio/created_at": moment().format()
+      email: "444@test.com",
+      id: "55555",
+      external_id: "3",
+      anonymous_id: "4",
+      first_name: "John",
+      last_name: "Second",
+      segment_ids: [],
+      "traits_customerio/created_at": moment().format()
     }]);
 
     minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
@@ -169,10 +195,20 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     });
 
     minihull.stubBatch([{
-      email: "222@test.com", id: "22222", external_id: "1", anonymous_id: "2", first_name: "James", last_name: "Veitch",
+      email: "222@test.com",
+      id: "22222",
+      external_id: "1",
+      anonymous_id: "2",
+      first_name: "James",
+      last_name: "Veitch",
       segment_ids: ["hullSegmentId"]
     }, {
-      email: "444@test.com", id: "44444", external_id: "3", anonymous_id: "4", first_name: "John", last_name: "Snow",
+      email: "444@test.com",
+      id: "44444",
+      external_id: "3",
+      anonymous_id: "4",
+      first_name: "John",
+      last_name: "Snow",
       segment_ids: ["hullSegmentId"]
     }]);
 

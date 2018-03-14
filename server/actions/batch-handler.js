@@ -1,5 +1,5 @@
 /* @flow */
-import { IContext } from "../lib/types";
+import type { IContext } from "../lib/types";
 
 const _ = require("lodash");
 const SyncAgent = require("../lib/sync-agent");

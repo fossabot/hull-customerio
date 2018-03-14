@@ -1,9 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
 
-import Minihull from "minihull";
-import assert from "assert";
-import bootstrap from "./support/bootstrap";
-import superagent from "superagent";
+const Minihull = require("minihull");
+const assert = require("assert");
+const bootstrap = require("./support/bootstrap");
+const superagent = require("superagent");
 
 describe("Connector Endpoints", function test() {
   let minihull;

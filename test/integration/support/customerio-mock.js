@@ -1,5 +1,5 @@
-import nock from "nock";
-import _ from "lodash";
+const nock = require("nock");
+const _ = require("lodash");
 
 module.exports = function mocks() {
   const API_PREFIX = "https://track.customer.io/api/v1";

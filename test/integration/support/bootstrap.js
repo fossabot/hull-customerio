@@ -1,10 +1,9 @@
-import { Connector } from "hull";
-import express from "express";
+const { Connector } = require("hull");
+const express = require("express");
+const server = require("../../../server/server");
+const { middleware } = require("../../../server/lib/crypto");
 
-import server from "../../../server/server";
-import { middleware } from "../../../server/lib/crypto";
-
-export default function bootstrap() {
+function bootstrap() {
   const app = express();
   const connector = new Connector({
     hostSecret: "1234",
@@ -17,3 +16,5 @@ export default function bootstrap() {
   server(app, { hostSecret: "1234" });
   return connector.startApp(app);
 }
+
+module.exports = bootstrap;

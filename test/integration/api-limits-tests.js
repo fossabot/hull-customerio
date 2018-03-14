@@ -1,9 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
 
-import Minihull from "minihull";
-import _ from "lodash";
-import bootstrap from "./support/bootstrap";
-import CustomerioMock from "./support/customerio-mock";
+const Minihull = require("minihull");
+const _ = require("lodash");
+const bootstrap = require("./support/bootstrap");
+const CustomerioMock = require("./support/customerio-mock");
 
 describe("Connector should respect API limits", function test() {
   let minihull;
@@ -20,7 +20,7 @@ describe("Connector should respect API limits", function test() {
   beforeEach(done => {
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001).then(done);;
+    minihull.listen(8001).then(done);
     minihull.stubConnector({ id: "123456789012345678901234", private_settings });
     minihull.stubSegments([{
       name: "testSegment",
@@ -41,8 +41,10 @@ describe("Connector should respect API limits", function test() {
 
     private_settings.synchronized_attributes = Object.keys(hullUserFields);
 
-    const firstBatchNock = customerioMock.setUpIdentifyCustomerNock("33333", "333@test.com",
-      _.pickBy(hullUserFields, v => v < 28));
+    const firstBatchNock = customerioMock.setUpIdentifyCustomerNock(
+      "33333", "333@test.com",
+      _.pickBy(hullUserFields, v => v < 28)
+    );
     const secondBatchNock = customerioMock.setUpNextIdentifyBatchCustomerNock("33333", _.merge({ hull_segments: ["testSegment"] }, _.pickBy(hullUserFields, v => v >= 28)));
 
     minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
