@@ -55,6 +55,7 @@
     "newrelic": "^2.4.1",
     "rimraf": "^2.6.1",
     "superagent": "^3.8.2",
+    "superagent-prefix": "^0.0.2",
     "superagent-throttle": "^0.2.5"
   },
   "devDependencies": {

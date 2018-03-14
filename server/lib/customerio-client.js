@@ -6,6 +6,7 @@ const _ = require("lodash");
 const superagent = require("superagent");
 const { Client } = require("hull");
 const SuperagentThrottle = require("superagent-throttle");
+const prefixPlugin = require("superagent-prefix");
 
 const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin } = require("hull/lib/utils");
 
@@ -39,7 +40,7 @@ class CustomerioClient {
     const { metric } = ctx;
     const siteId = _.get(ctx.ship, "private_settings.site_id", "n/a");
     const apiKey = _.get(ctx.ship, "private_settings.api_key", "n/a");
-    this.urlPrefix = "https://track.customer.io/api/v1";
+    this.urlPrefix = "https://track.customer.io";
     this.client = ctx.client;
     this.auth = {
       username: siteId,
@@ -52,6 +53,7 @@ class CustomerioClient {
     });
 
     this.agent = superagent.agent()
+      .use(prefixPlugin(this.urlPrefix))
       .use(throttle.plugin(siteId))
       .use(superagentUrlTemplatePlugin())
       .use(superagentInstrumentationPlugin({ logger: this.client.logger, metric }))
@@ -82,7 +84,7 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   checkAuth(): Promise<*> {
-    return this.agent.get("https://track.customer.io/auth");
+    return this.agent.get("/auth");
   }
 
   /**
@@ -94,7 +96,7 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   identify(userId: string, attributes: Object): Promise<*> {
-    return this.agent.put(`${this.urlPrefix}/customers/${userId}`).send(attributes);
+    return this.agent.put("/api/v1/customers/{{userId}}").tmplVar({ userId }).send(attributes);
   }
 
   /**
@@ -105,7 +107,7 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   deleteUser(userId: string): Promise<*> {
-    return this.agent.delete(`${this.urlPrefix}/customers/${userId}`);
+    return this.agent.delete("/api/v1/customers/{{userId}}").tmplVar({ userId });
   }
 
   /**
@@ -118,7 +120,8 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   sendPageViewEvent(userId: string, name: string, data: any): Promise<*> {
-    return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
+    return this.agent.post("/api/v1/customers/{{userId}}/events")
+      .tmplVar({ userId })
       .send({ type: "page", name, data });
   }
 
@@ -133,7 +136,8 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   sendCustomerEvent(userId: string, name: string, data: Object): Promise<*> {
-    return this.agent.post(`${this.urlPrefix}/customers/${userId}/events`)
+    return this.agent.post("/api/v1/customers/{{userId}}/events")
+      .tmplVar({ userId })
       .send({ name, data });
   }
 
@@ -147,7 +151,7 @@ class CustomerioClient {
    * @memberof CustomerioClient
    */
   sendAnonymousEvent(name: string, data: Object): Promise<*> {
-    return this.agent.post(`${this.urlPrefix}/events`)
+    return this.agent.post("/api/v1/events")
       .send({ name, data });
   }
 }
