@@ -15,7 +15,6 @@ const applyAgent = require("./middlewares/apply-agent");
 const { encrypt } = require("./lib/crypto");
 
 function server(app: $Application, { hostSecret }: Object) {
-  console.log(">>> server");
   app.get("/admin.html", (req: TRequest, res: $Response) => {
     const token = encrypt(req.hull.config, hostSecret);
     res.render("admin.html", { hostname: req.hostname, token });

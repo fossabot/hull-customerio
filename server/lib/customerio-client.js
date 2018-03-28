@@ -8,7 +8,7 @@ const { Client } = require("hull");
 const SuperagentThrottle = require("superagent-throttle");
 const prefixPlugin = require("superagent-prefix");
 
-const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin } = require("hull/lib/utils");
+const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin, superagentErrorPlugin } = require("hull/lib/utils");
 
 class CustomerioClient {
   /**
@@ -53,14 +53,14 @@ class CustomerioClient {
     });
 
     this.agent = superagent.agent()
+      .use(superagentErrorPlugin({ timeout: 10000 }))
       .use(prefixPlugin(this.urlPrefix))
       .use(throttle.plugin(siteId))
       .use(superagentUrlTemplatePlugin())
       .use(superagentInstrumentationPlugin({ logger: this.client.logger, metric }))
       .set({ "Content-Type": "application/json" })
       .auth(siteId, apiKey)
-      .ok(res => res.status === 200) // we reject the promise for all non 200 responses
-      .timeout({ response: 10000 });
+      .ok(res => res.status === 200); // we reject the promise for all non 200 responses
   }
 
   /**

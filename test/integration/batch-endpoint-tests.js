@@ -2,6 +2,8 @@
 
 const Minihull = require("minihull");
 const moment = require("moment");
+const _ = require("lodash");
+const { expect } = require("chai");
 
 const bootstrap = require("./support/bootstrap");
 const CustomerioMock = require("./support/customerio-mock");
@@ -73,12 +75,17 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
       segment_ids: ["hullSegmentId"]
     }]);
 
-    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {
-      setTimeout(() => {
-        jamesVeitchCustomerNock.done();
-        johnSnowCustomerNock.done();
-        done();
-      }, 500);
+    minihull.batchConnector("123456789012345678901234", "http://localhost:8000/batch").then(() => {});
+    minihull.on("incoming.request@/api/v1/firehose", (req) => {
+      jamesVeitchCustomerNock.done();
+      johnSnowCustomerNock.done();
+      expect(req.body.batch[0].type).to.equal("traits");
+      expect(_.size(req.body.batch[0].body)).to.equal(1);
+      expect(req.body.batch[0].body).to.have.property("customerio/created_at");
+      expect(req.body.batch[1].type).to.equal("traits");
+      expect(_.size(req.body.batch[1].body)).to.equal(1);
+      expect(req.body.batch[1].body).to.have.property("customerio/created_at");
+      done();
     });
   });
 

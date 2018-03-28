@@ -20,9 +20,9 @@ function batchHandler(ctx: TReqContext, messages: Array<THullUserUpdateMessage> 
       else usersToDelete.push(message.user);
     });
 
-    messages.forEach(message => {
-      if (_.intersection(message.segments.map(s => s.id), filterSegments).length > 0) usersToSend.push({ user: message.user, segments: message.segments });
-    });
+    // messages.forEach(message => {
+    //   if (_.intersection(message.segments.map(s => s.id), filterSegments).length > 0) usersToSend.push({ user: message.user, segments: message.segments });
+    // });
 
     return syncAgent.deleteBatchOfUsers(usersToDelete).then(() => syncAgent.sendBatchOfUsers(usersToSend));
   }
