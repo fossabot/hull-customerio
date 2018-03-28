@@ -126,7 +126,7 @@ class SyncAgent {
       return Promise.resolve();
     }
 
-    const created_at = moment().format("X");
+    const created_at = moment(user.created_at).format("X");
     const userIdent = { email };
 
     const mapper = new AttributesMapper(this.userAttributesMapping);
