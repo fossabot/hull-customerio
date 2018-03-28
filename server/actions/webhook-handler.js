@@ -42,8 +42,11 @@ function webhookHandler(req: TRequest, res: $Response): Promise<*> {
     return Promise.resolve();
   }
 
+  const regex = /[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+/img;
+
+
   const user = {
-    email: email_address
+    email: email_address.match(regex)
   };
 
   const userIdent = {};
