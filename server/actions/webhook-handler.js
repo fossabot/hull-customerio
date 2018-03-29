@@ -53,7 +53,7 @@ function webhookHandler(req: TRequest, res: $Response): Promise<*> {
   if (userIdMapping === "external_id") {
     userIdent.external_id = customer_id;
   } else {
-    userIdent.email = user.email;
+    userIdent.email = _.isArray(user.email) ? user.email[0] : user.email;
   }
 
   if (userIdMapping === "id" && customer_id) {
