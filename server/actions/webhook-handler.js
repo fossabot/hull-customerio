@@ -56,6 +56,12 @@ function webhookHandler(req: TRequest, res: $Response): Promise<*> {
     userIdent.email = user.email;
   }
 
+  if (userIdMapping === "id" && customer_id) {
+    userIdent.id = customer_id;
+  }
+
+  req.hull.client.logger.debug("User Ident for webhook", { userIdent, payload: req.body });
+
   const asUser = req.hull.client.asUser(userIdent);
 
   const eventPayload = {
