@@ -3,7 +3,7 @@ const Minihull = require("minihull");
 const assert = require("assert");
 const superagent = require("superagent");
 
-const bootstrap = require("./support/bootstrap");
+const bootstrap = require("./helper/bootstrap");
 const { encrypt } = require("../../server/lib/crypto");
 
 describe("Connector for webhooks endpoint", function test() {
@@ -20,10 +20,12 @@ describe("Connector for webhooks endpoint", function test() {
     events_filter: ["page", "custom", "anonymous"]
   };
 
-  beforeEach(done => {
+  beforeEach(function (done) { // eslint-disable-line func-names
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001).then(done);
+    minihull.listen(8001).then(() => {
+      done();
+    });
     minihull.stubConnector({ id: "123456789012345678901234", private_settings });
     minihull.stubSegments([{
       name: "testSegment",
@@ -43,7 +45,7 @@ describe("Connector for webhooks endpoint", function test() {
   };
   const token = encrypt(config, "1234");
 
-  it("should track email events in correct form", done => {
+  test("should track email events in correct form", function (done) { // eslint-disable-line func-names
     superagent.post(`http://localhost:8000/webhook?conf=${token}`)
       .send({
         data: {
@@ -82,7 +84,7 @@ describe("Connector for webhooks endpoint", function test() {
     });
   });
 
-  it("should not track events if event_type is undefined on our side", done => {
+  test("should not track events if event_type is undefined on our side", function (done) { // eslint-disable-line func-names
     superagent.post(`http://localhost:8000/webhook?conf=${token}`)
       .send({
         data: {
@@ -110,7 +112,7 @@ describe("Connector for webhooks endpoint", function test() {
     }, 1500);
   });
 
-  it("should not track events if customerio sent test event", done => {
+  test("should not track events if customerio sent test event", function (done) { // eslint-disable-line func-names
     superagent.post(`http://localhost:8000/webhook?conf=${token}`)
       .send({
         data: {

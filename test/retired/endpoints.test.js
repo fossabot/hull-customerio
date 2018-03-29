@@ -2,7 +2,7 @@
 
 const Minihull = require("minihull");
 const assert = require("assert");
-const bootstrap = require("./support/bootstrap");
+const bootstrap = require("./helper/bootstrap");
 const superagent = require("superagent");
 
 describe("Connector Endpoints", function test() {
@@ -11,10 +11,12 @@ describe("Connector Endpoints", function test() {
 
   const private_settings = {};
 
-  beforeEach(done => {
+  beforeEach(function (done) { // eslint-disable-line func-names
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001).then(done);
+    minihull.listen(8001).then(() => {
+      done();
+    });
     minihull.stubConnector({ id: "123456789012345678901234", private_settings });
     minihull.stubSegments([{
       name: "testSegment",
@@ -27,7 +29,7 @@ describe("Connector Endpoints", function test() {
     server.close();
   });
 
-  it("should return status ok for admin.html endpoint", done => {
+  test("should return status ok for admin.html endpoint", function (done) { // eslint-disable-line func-names
     superagent.get("http://localhost:8000/admin.html").then(res => {
       assert.equal(res.status, 200);
       done();

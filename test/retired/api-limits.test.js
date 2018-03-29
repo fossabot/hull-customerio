@@ -1,11 +1,9 @@
-/* global describe, it, beforeEach, afterEach */
-
 const Minihull = require("minihull");
 const _ = require("lodash");
-const bootstrap = require("./support/bootstrap");
-const CustomerioMock = require("./support/customerio-mock");
+const bootstrap = require("./helper/bootstrap");
+const CustomerioMock = require("./helper/customerio-mock");
 
-describe("Connector should respect API limits", function test() {
+describe.only("Connector should respect API limits", function test() {
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
@@ -17,15 +15,16 @@ describe("Connector should respect API limits", function test() {
     api_key: "2"
   };
 
-  beforeEach(done => {
+  beforeEach(function (done) { // eslint-disable-line func-names
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001).then(done);
+    minihull.listen(8001);
     minihull.stubConnector({ id: "123456789012345678901234", private_settings });
     minihull.stubSegments([{
       name: "testSegment",
       id: "hullSegmentId"
     }]);
+    done();
   });
 
   afterEach(() => {
@@ -33,7 +32,7 @@ describe("Connector should respect API limits", function test() {
     server.close();
   });
 
-  it("should send attributes in 30 count batches", done => {
+  test.only("should send attributes in 30 count batches", function (done) { // eslint-disable-line func-names
     const range = _.range(35);
 
     const hullUserIdent = { email: "333@test.com" };

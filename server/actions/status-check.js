@@ -1,19 +1,21 @@
 /* @flow */
 import type { $Response } from "express";
-import type { TRequest } from "hull";
+import type { THullRequest } from "hull";
 
 const _ = require("lodash");
 const Promise = require("bluebird");
+const SyncAgent = require("../lib/sync-agent");
 
-function statusCheckAction(req: TRequest, res: $Response): Promise<*> {
+function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
   if (_.has(req, "hull.ship.private_settings")) {
-    const { ship, client } = req.hull;
-    const { syncAgent } = req.hull.service;
+    const { client } = req.hull;
+    const connector = _.get(req, "hull.connector", null) || _.get(req, "hull.ship", null);
+    const syncAgent = new SyncAgent(req.hull);
     const messages: Array<string> = [];
     let status: string = "ok";
     const promises: Array<Promise> = [];
 
-    if (_.isEmpty(_.get(ship, "private_settings.synchronized_segments", []))) {
+    if (_.isEmpty(_.get(connector, "private_settings.synchronized_segments", []))) {
       if (status !== "error") {
         status = "warning";
       }
@@ -26,20 +28,20 @@ function statusCheckAction(req: TRequest, res: $Response): Promise<*> {
     } else {
       promises.push(syncAgent.checkAuth()
         .then(() => {
-
         }).catch(err => {
           status = "error";
           if (_.get(err, "response.status") === 401) {
             messages.push("Invalid Credentials: Verify Site ID and API Key in Settings.");
+          } else {
+            messages.push(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown Exception")}`);
           }
-          messages.push(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown Exception")}`);
         }));
     }
 
     const handleResponse = () => {
       res.json({ status, messages });
       client.logger.debug("ship.status", { status, messages });
-      return client.put(`${ship.id}/status`, { status, messages });
+      return client.put(`${connector.id}/status`, { status, messages });
     };
 
     return Promise.all(promises)
@@ -50,8 +52,9 @@ function statusCheckAction(req: TRequest, res: $Response): Promise<*> {
       .then(handleResponse);
   }
 
-  return Promise.resolve(() => {
-    return res.status(401).json({ status: 404, messages: ["Connector not found"] });
+  return new Promise((resolve) => {
+    res.status(404).json({ status: 404, messages: ["Connector not found"] });
+    resolve();
   });
 }
 

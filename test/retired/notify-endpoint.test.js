@@ -3,8 +3,8 @@ const Minihull = require("minihull");
 const assert = require("assert");
 const moment = require("moment");
 
-const bootstrap = require("./support/bootstrap");
-const CustomerioMock = require("./support/customerio-mock");
+const bootstrap = require("./helper/bootstrap");
+const CustomerioMock = require("./helper/customerio-mock");
 
 describe("Connector for notify endpoint", function test() {
   let minihull;
@@ -22,10 +22,12 @@ describe("Connector for notify endpoint", function test() {
     enable_user_deletion: "true",
   };
 
-  beforeEach(done => {
+  beforeEach(function (done) { // eslint-disable-line func-names
     minihull = new Minihull();
     server = bootstrap();
-    minihull.listen(8001).then(done);
+    return minihull.listen(8001).then(() => {
+      done();
+    });
   });
 
   afterEach(() => {
@@ -33,7 +35,7 @@ describe("Connector for notify endpoint", function test() {
     server.close();
   });
 
-  it("should send users to customer.io", done => {
+  test("should send users to customer.io", function (done) { // eslint-disable-line func-names
     customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
       first_name: "James",
       last_name: "Bond",
@@ -53,7 +55,7 @@ describe("Connector for notify endpoint", function test() {
     }]);
   });
 
-  it("should send events to customer.io", done => {
+  test("should send events to customer.io", function (done) { // eslint-disable-line func-names
     const createCustomerNock = customerioMock.setUpIdentifyCustomerNock("54321", "foo@test.com", {
       first_name: "Katy",
       last_name: "Perry",
@@ -106,7 +108,7 @@ describe("Connector for notify endpoint", function test() {
     }, 1500);
   });
 
-  it("should not send user if he was already sent", done => {
+  test("should not send user if he was already sent", function (done) { // eslint-disable-line func-names
     customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
       first_name: "Olivia",
       last_name: "Wilde"
@@ -141,7 +143,7 @@ describe("Connector for notify endpoint", function test() {
     }, 1500);
   });
 
-  it("should delete user = require(customer.io if he does not match segments", done => {
+  test("should delete user = require(customer.io if he does not match segments", function (done) { // eslint-disable-line func-names
     const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
     minihull.on("incoming.request", () => {
@@ -166,7 +168,7 @@ describe("Connector for notify endpoint", function test() {
     }]);
   });
 
-  it("should send anonymous event to customer.io", done => {
+  test("should send anonymous event to customer.io", function (done) { // eslint-disable-line func-names
     customerioMock.setUpSendAnonymousEventNock("anonymous", {
       name: "Anonymous Event"
     }, () => done());
@@ -192,7 +194,7 @@ describe("Connector for notify endpoint", function test() {
     }]);
   });
 
-  it("should send only email, created_at and hull_segments attributes if synchronized_attributes does not contains other fields", done => {
+  test("should send only email, created_at and hull_segments attributes if synchronized_attributes does not contains other fields", function (done) { // eslint-disable-line func-names
     customerioMock.setUpIdentifyCustomerNock("34567", "foo@test2.com", { hull_segments: ["testSegment"] }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
@@ -206,7 +208,7 @@ describe("Connector for notify endpoint", function test() {
     }]);
   });
 
-  it("should handle customerio api failure and not return 500", done => {
+  test("should handle customerio api failure and not return 500", function (done) { // eslint-disable-line func-names
     const badScenarioNock = customerioMock.setUpDeleteUserBadScenarioNock("34567", "foo@test2.com", {});
     let request;
 
@@ -236,5 +238,5 @@ describe("Connector for notify endpoint", function test() {
         done();
       }, 2500);
     });
-  }).timeout(3000);
+  }, 3000);
 });

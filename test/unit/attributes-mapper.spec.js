@@ -1,9 +1,8 @@
-/* global describe, it */
 const AttributesMapper = require("../../server/lib/attributes-mapper");
 const assert = require("assert");
 
 describe("AttributesMapper", () => {
-  it("should clear nested account attributes from mappings", () => {
+  test("should clear nested account attributes from mappings", () => {
     const attribMappings = [
       "account.clearbit/name",
       "traits_salesforce_lead/title",
@@ -26,7 +25,7 @@ describe("AttributesMapper", () => {
     assert.deepEqual(mapper.userAttributesMapping, cleanedMappings);
   });
 
-  it("should map attributes including nested account attributes to a flat hierarchy with / replaced by -", () => {
+  test("should map attributes including nested account attributes to a flat hierarchy with / replaced by -", () => {
     const attribMappings = [
       "account.clearbit/name",
       "traits_salesforce_lead/title",
@@ -61,7 +60,7 @@ describe("AttributesMapper", () => {
     assert.deepEqual(result, mappedAttribs);
   });
 
-  it("should map attributes without an account", () => {
+  test("should map attributes without an account", () => {
     const attribMappings = [
       "traits_salesforce_lead/title",
       "first_name",
@@ -92,7 +91,7 @@ describe("AttributesMapper", () => {
     assert.deepEqual(result, mappedAttribs);
   });
 
-  it("should map hull_segments by default", () => {
+  test("should map hull_segments by default", () => {
     const attribMappings = [
       "traits_salesforce_lead/title",
       "first_name",

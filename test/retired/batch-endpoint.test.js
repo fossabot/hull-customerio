@@ -3,8 +3,8 @@
 const Minihull = require("minihull");
 const moment = require("moment");
 
-const bootstrap = require("./support/bootstrap");
-const CustomerioMock = require("./support/customerio-mock");
+const bootstrap = require("./helper/bootstrap");
+const CustomerioMock = require("./helper/customerio-mock");
 
 describe("Connector for batch endpoint if user deletion is enabled", function test() {
   let minihull;
@@ -22,7 +22,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     enable_user_deletion: "true",
   };
 
-  beforeEach(done => {
+  beforeEach(function (done) { // eslint-disable-line func-names
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -42,7 +42,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     server.close();
   });
 
-  it("should send batch of users to customer.io", done => {
+  test("should send batch of users to customer.io", function (done) { // eslint-disable-line func-names
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
       last_name: "Veitch",
@@ -82,7 +82,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
   });
 
-  it("should not delete user if he was never sent to customer.io", done => {
+  test("should not delete user if he was never sent to customer.io", function (done) { // eslint-disable-line func-names
     const deleteNock = customerioMock.setUpDeleteCustomerNock("44444");
 
     minihull.stubBatch([{
@@ -108,7 +108,7 @@ describe("Connector for batch endpoint if user deletion is enabled", function te
     });
   });
 
-  it("should send batch of users to customer.io and delete users that do not match filtered segments", done => {
+  test("should send batch of users to customer.io and delete users that do not match filtered segments", function (done) { // eslint-disable-line func-names
     const firstCustomerCreateNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
       last_name: "First",
@@ -161,7 +161,7 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     events_filter: ["page", "custom", "anonymous"]
   };
 
-  beforeEach(done => {
+  beforeEach(() => {
     minihull = new Minihull();
     server = bootstrap();
     minihull.listen(8001);
@@ -172,7 +172,7 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     }]);
 
     setTimeout(() => {
-      done();
+      return Promise.resolve();
     }, 1000);
   });
 
@@ -181,7 +181,7 @@ describe("Connector for batch endpoint if user deletion is disabled", function t
     server.close();
   });
 
-  it("should send batch of users to customer.io", done => {
+  test("should send batch of users to customer.io", function (done) { // eslint-disable-line func-names
     const jamesVeitchCustomerNock = customerioMock.setUpIdentifyCustomerNock("22222", "222@test.com", {
       first_name: "James",
       last_name: "Veitch",
