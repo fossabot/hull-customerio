@@ -35,8 +35,10 @@ function updateUser(ctx: TReqContext, messages: Array<THullUserUpdateMessage>): 
   };
 
   return Promise.all(messages.map(({
-    user, segments, events, changes
+    user, segments, events, changes, account
   }) => {
+    // $FlowFixMe
+    user.account = account;
     const userPromises = [];
     if (!_.get(changes, "user['traits_customerio/created_at'][1]", false) || !_.get(changes, "user['traits_customerio/deleted_at'][1]", false)) {
       if (_.intersection(segments.map(s => s.id), filterSegments).length > 0) {

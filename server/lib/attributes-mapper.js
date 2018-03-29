@@ -1,5 +1,6 @@
 /* @flow */
 const _ = require("lodash");
+const moment = require("moment");
 
 class AttributesMapper {
   /**
@@ -52,11 +53,21 @@ class AttributesMapper {
     }
 
     // Make attributes fail-safe
-    const attributes = _.mapKeys(filteredAttributes, (value, key) => {
+    let attributes = _.mapKeys(filteredAttributes, (value, key) => {
       if (_.startsWith(key, "traits_")) {
         return key.substr(7).split("/").join("-");
       }
       return key.split("/").join("-");
+    });
+
+    // Cast dates
+    attributes = _.mapValues(attributes, (value, key) => {
+      if (key !== "created_at"
+        && (_.endsWith(key, "_date") || _.endsWith(key, "_at"))
+        && moment(value).isValid()) {
+        return moment(value).format("X");
+      }
+      return value;
     });
 
     return attributes;

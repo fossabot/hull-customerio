@@ -17,7 +17,7 @@ describe("Connector for notify endpoint", function test() {
     user_id_mapping: "test_id",
     site_id: "1",
     api_key: "2",
-    synchronized_attributes: ["first_name", "last_name"],
+    synchronized_attributes: ["first_name", "last_name", "traits_custom_date"],
     events_filter: ["page", "custom", "anonymous"],
     enable_user_deletion: "true",
   };
@@ -37,12 +37,13 @@ describe("Connector for notify endpoint", function test() {
     customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
       first_name: "James",
       last_name: "Bond",
+      custom_date: "1516810499",
       hull_segments: ["testSegment"]
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
       user: {
-        email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond"
+        email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond", traits_custom_date: "2018-01-24T17:14:59.878"
       },
       changes: {},
       events: [],
@@ -107,9 +108,11 @@ describe("Connector for notify endpoint", function test() {
   });
 
   it("should not send user if he was already sent", done => {
-    customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", "foo@bar.com", {
+    customerioMock.setUpAlreadyIdentifiedCustomerNock("66666", {
+      email: "foo@bar.com",
       first_name: "Olivia",
-      last_name: "Wilde"
+      last_name: "Wilde",
+      hull_segments: ["testSegment"]
     });
 
     minihull.on("incoming.request", () => {
