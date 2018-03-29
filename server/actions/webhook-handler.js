@@ -42,16 +42,25 @@ function webhookHandler(req: TRequest, res: $Response): Promise<*> {
     return Promise.resolve();
   }
 
+  const regex = /[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+/img;
+
+
   const user = {
-    email: email_address
+    email: email_address.match(regex)
   };
 
   const userIdent = {};
   if (userIdMapping === "external_id") {
     userIdent.external_id = customer_id;
   } else {
-    userIdent.email = user.email;
+    userIdent.email = _.isArray(user.email) ? user.email[0] : user.email;
   }
+
+  if (userIdMapping === "id" && customer_id) {
+    userIdent.id = customer_id;
+  }
+
+  req.hull.client.logger.debug("User Ident for webhook", { userIdent, payload: req.body });
 
   const asUser = req.hull.client.asUser(userIdent);
 
