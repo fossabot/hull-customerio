@@ -7,6 +7,7 @@ const bootstrap = require("./support/bootstrap");
 const CustomerioMock = require("./support/customerio-mock");
 
 describe("Connector for notify endpoint", function test() {
+  this.timeout(5000);
   let minihull;
   let server;
   const customerioMock = new CustomerioMock();
