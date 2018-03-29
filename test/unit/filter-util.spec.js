@@ -20,11 +20,11 @@ describe("FilterUtil", () => {
           },
           events: [
             {
-              id: "abc1",
+              event_id: "abc1",
               event: "foo 1"
             },
             {
-              id: "xyz9",
+              event_id: "xyz9",
               event: "foo 1"
             }
           ]
@@ -37,11 +37,11 @@ describe("FilterUtil", () => {
           },
           events: [
             {
-              id: "abc1",
+              event_id: "abc1",
               event: "foo 1"
             },
             {
-              id: "dfg3",
+              event_id: "dfg3",
               event: "foo baz boo"
             }
           ]
