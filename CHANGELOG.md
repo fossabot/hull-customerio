@@ -1,5 +1,10 @@
 ## CHANGELOG
 
+## 0.1.10
+
+- rely on `user.created_at` trait instead of calculating it on every update - possible loop condition
+- fix incoming webhooks user ident resolution
+
 ## 0.1.9
 
 - cast outgoing date traits ending with "_date" and "_at"

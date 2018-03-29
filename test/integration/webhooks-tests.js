@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-import Minihull from "minihull";
-import assert from "assert";
-import axios from "axios";
+const Minihull = require("minihull");
+const assert = require("assert");
+const superagent = require("superagent");
 
-import bootstrap from "./support/bootstrap";
-import { encrypt } from "../../server/lib/crypto";
+const bootstrap = require("./support/bootstrap");
+const { encrypt } = require("../../server/lib/crypto");
 
 describe("Connector for webhooks endpoint", function test() {
   let minihull;
@@ -44,10 +44,8 @@ describe("Connector for webhooks endpoint", function test() {
   const token = encrypt(config, "1234");
 
   it("should track email events in correct form", done => {
-    axios({
-      method: "post",
-      url: `http://localhost:8000/webhook?conf=${token}`,
-      data: {
+    superagent.post(`http://localhost:8000/webhook?conf=${token}`)
+      .send({
         data: {
           campaign_id: "1",
           customer_id: "example_customer",
@@ -60,11 +58,10 @@ describe("Connector for webhooks endpoint", function test() {
         event_id: "abcd123",
         event_type: "email_sent",
         timestamp: 1500635446
-      }
-    });
+      }).then();
 
     minihull.on("incoming.request", req => {
-      const batch = req.body.batch;
+      const { batch } = req.body;
       if (batch) {
         const { type, body } = batch[0];
 
@@ -86,23 +83,23 @@ describe("Connector for webhooks endpoint", function test() {
   });
 
   it("should not track events if event_type is undefined on our side", done => {
-    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
-      data: {
-        campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2"
-      },
-      event_id: "abcd123",
-      event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446
-    }
-    );
+    superagent.post(`http://localhost:8000/webhook?conf=${token}`)
+      .send({
+        data: {
+          campaign_id: "1",
+          customer_id: "example_customer",
+          email_address: "example@customer.io",
+          email_id: "example_email",
+          subject: "Example Email",
+          template_id: "2"
+        },
+        event_id: "abcd123",
+        event_type: "email_that_we_did_not_specified",
+        timestamp: 1500635446
+      }).then();
 
     minihull.on("incoming.request", req => {
-      const batch = req.body.batch;
+      const { batch } = req.body;
       if (batch) {
         done("track events should not happen !");
       }
@@ -114,23 +111,23 @@ describe("Connector for webhooks endpoint", function test() {
   });
 
   it("should not track events if customerio sent test event", done => {
-    axios.post(`http://localhost:8000/webhook?conf=${token}`, {
-      data: {
-        campaign_id: "1",
-        customer_id: "example_customer",
-        email_address: "example@customer.io",
-        email_id: "example_email",
-        subject: "Example Email",
-        template_id: "2"
-      },
-      event_id: "abc123",
-      event_type: "email_that_we_did_not_specified",
-      timestamp: 1500635446
-    }
-    );
+    superagent.post(`http://localhost:8000/webhook?conf=${token}`)
+      .send({
+        data: {
+          campaign_id: "1",
+          customer_id: "example_customer",
+          email_address: "example@customer.io",
+          email_id: "example_email",
+          subject: "Example Email",
+          template_id: "2"
+        },
+        event_id: "abc123",
+        event_type: "email_that_we_did_not_specified",
+        timestamp: 1500635446
+      }).then();
 
     minihull.on("incoming.request", req => {
-      const batch = req.body.batch;
+      const { batch } = req.body;
       if (batch) {
         done("track events should not happen !");
       }

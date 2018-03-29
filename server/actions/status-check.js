@@ -1,36 +1,39 @@
 /* @flow */
+import type { $Response } from "express";
+import type { TRequest } from "hull";
 
-import { Request, Response } from "express";
-import _ from "lodash";
+const _ = require("lodash");
+const Promise = require("bluebird");
 
-export default function statusCheckAction(req: Request, res: Response): Promise<*> {
-  if (req.hull && req.hull.ship && req.hull.ship.private_settings) {
-    const { ship = {}, client = {}, service = {} } = req.hull;
-    const messages = [];
-    let status = "ok";
-    const pushMessage = (message) => {
-      status = "error";
-      messages.push(message);
-    };
-    const promises = [];
+function statusCheckAction(req: TRequest, res: $Response): Promise<*> {
+  if (_.has(req, "hull.ship.private_settings")) {
+    const { ship, client } = req.hull;
+    const { syncAgent } = req.hull.service;
+    const messages: Array<string> = [];
+    let status: string = "ok";
+    const promises: Array<Promise> = [];
 
     if (_.isEmpty(_.get(ship, "private_settings.synchronized_segments", []))) {
-      pushMessage("No users will be synchronized because of missing whitelisted Segments");
+      if (status !== "error") {
+        status = "warning";
+      }
+      messages.push("No users will be synchronized because you have not specified at least one whitelisted segment in Settings.");
     }
 
-    if (!service.syncAgent.isConfigured()) {
-      pushMessage("Missing Credentials");
+    if (!syncAgent.isConfigured()) {
+      status = "error";
+      messages.push("Missing Credentials: Site ID or API Key are not configured in Settings.");
     } else {
-      promises.push(service.syncAgent.checkAuth()
+      promises.push(syncAgent.checkAuth()
         .then(() => {
 
         }).catch(err => {
+          status = "error";
           if (_.get(err, "response.status") === 401) {
-            return pushMessage("API Credentials are invalid");
+            messages.push("Invalid Credentials: Verify Site ID and API Key in Settings.");
           }
-          return pushMessage(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown")}`);
-        })
-      );
+          messages.push(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown Exception")}`);
+        }));
     }
 
     const handleResponse = () => {
@@ -40,11 +43,16 @@ export default function statusCheckAction(req: Request, res: Response): Promise<
     };
 
     return Promise.all(promises)
-    .catch(err => {
-      pushMessage(_.get(err, "message", "Unknown error"));
-    })
-    .then(handleResponse);
+      .catch(err => {
+        status = "error";
+        messages.push(`Error when trying to determine the status: ${_.get(err, "message", "Unknown Exception")}`);
+      })
+      .then(handleResponse);
   }
 
-  return res.status(401).json({ status: 404, messages: ["Connector not found"] });
+  return Promise.resolve(() => {
+    return res.status(401).json({ status: 404, messages: ["Connector not found"] });
+  });
 }
+
+module.exports = statusCheckAction;

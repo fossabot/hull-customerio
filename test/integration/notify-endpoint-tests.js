@@ -1,10 +1,10 @@
 /* global describe, it, beforeEach, afterEach */
-import Minihull from "minihull";
-import assert from "assert";
-import moment from "moment";
+const Minihull = require("minihull");
+const assert = require("assert");
+const moment = require("moment");
 
-import bootstrap from "./support/bootstrap";
-import CustomerioMock from "./support/customerio-mock";
+const bootstrap = require("./support/bootstrap");
+const CustomerioMock = require("./support/customerio-mock");
 
 describe("Connector for notify endpoint", function test() {
   let minihull;
@@ -33,7 +33,7 @@ describe("Connector for notify endpoint", function test() {
     server.close();
   });
 
-  it("should send users to customer.io", done => {
+  it.skip("should send users to customer.io", done => {
     customerioMock.setUpIdentifyCustomerNock("34567", "foo@bar.com", {
       first_name: "James",
       last_name: "Bond",
@@ -42,7 +42,9 @@ describe("Connector for notify endpoint", function test() {
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond", traits_custom_date: "2018-01-24T17:14:59.878" },
+      user: {
+        email: "foo@bar.com", test_id: "34567", first_name: "James", last_name: "Bond", traits_custom_date: "2018-01-24T17:14:59.878"
+      },
       changes: {},
       events: [],
       segments: [{ id: "hullSegmentId", name: "testSegment" }]
@@ -59,28 +61,18 @@ describe("Connector for notify endpoint", function test() {
       hull_segments: ["testSegment"]
     });
     const pageViewEventsMock = customerioMock.setUpSendPageViewEventNock("54321", "http://www.google.com", {
-      context: {
-        page: "http://www.google.com"
-      },
-      properties: {
-        name: "Page Event",
-        some_property: "test",
-        url: "http://www.google.com"
-      },
-      event: "page"
+      name: "Page Event",
+      some_property: "test",
+      url: "http://www.google.com"
     });
     const customerEventMock = customerioMock.setUpSendCustomerEventNock("54321", "custom", {
-      event: "custom",
-      context: {
-        context_property: "testify"
-      },
-      properties: {
-        name: "Custom Event"
-      }
+      name: "Custom Event"
     });
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry" },
+      user: {
+        email: "foo@test.com", test_id: "54321", first_name: "Katy", last_name: "Perry"
+      },
       changes: {},
       events: [{
         event: "page",
@@ -152,7 +144,7 @@ describe("Connector for notify endpoint", function test() {
     }, 1500);
   });
 
-  it("should delete user from customer.io if he does not match segments", done => {
+  it("should delete user = require(customer.io if he does not match segments", done => {
     const deleteUserNock = customerioMock.setUpDeleteCustomerNock("77777");
 
     minihull.on("incoming.request", () => {
@@ -179,17 +171,13 @@ describe("Connector for notify endpoint", function test() {
 
   it("should send anonymous event to customer.io", done => {
     customerioMock.setUpSendAnonymousEventNock("anonymous", {
-      event: "anonymous",
-      context: {
-        some_field: "testing"
-      },
-      properties: {
-        name: "Anonymous Event"
-      }
+      name: "Anonymous Event"
     }, () => done());
 
     minihull.smartNotifyConnector({ id: "123456789012345678901235", private_settings }, "http://localhost:8000/smart-notifier", "user:update", [{
-      user: { email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green" },
+      user: {
+        email: "foo@bar.com", anonymous_id: "999", first_name: "Eva", last_name: "Green"
+      },
       changes: {},
       events: [{
         event: "anonymous",

@@ -1,27 +1,22 @@
 /* @flow */
-import { Request, Response, Next } from "express";
-import { Cluster } from "bottleneck";
-import _ from "lodash";
-import SyncAgent from "../lib/sync-agent";
-import CustomerioClient from "../lib/customerio-client";
+import type { $Response, NextFunction } from "express";
+import type { TRequest } from "hull";
 
-export default function applyAgent(bottleneckCluster: Cluster) {
-  return (req: Request, res: Response, next: Next) => {
+const SyncAgent = require("../lib/sync-agent");
+const CustomerioClient = require("../lib/customerio-client");
+
+function applyAgent(): Function {
+  return (req: TRequest, res: $Response, next: NextFunction) => {
     if (req.hull && req.hull.ship) {
       req.hull = req.hull || {};
       req.hull.service = req.hull.service || {};
 
-      const bottleneck = bottleneckCluster.key(req.hull.ship.id);
-
-      const customerioClient = new CustomerioClient(
-        _.get(req.hull.ship, "private_settings.site_id"),
-        _.get(req.hull.ship, "private_settings.api_key"),
-        bottleneck,
-        req.hull.client
-      );
+      const customerioClient = new CustomerioClient(req.hull);
 
       req.hull.service.syncAgent = new SyncAgent(req.hull, customerioClient);
     }
     return next();
   };
 }
+
+module.exports = applyAgent;

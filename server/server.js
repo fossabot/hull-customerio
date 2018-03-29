@@ -1,34 +1,37 @@
 /* @flow */
-import express from "express";
-import { notifHandler, smartNotifierHandler } from "hull/lib/utils";
-import bodyParser from "body-parser";
+import type { $Application, $Response } from "express";
+import type { TRequest, THullReqContext } from "hull";
 
-import webhookHandler from "./actions/webhook-handler";
-import applyAgent from "./middlewares/apply-agent";
-import * as actions from "./actions";
-import requireConfiguration from "./middlewares/check-connector-configuration";
-import { encrypt } from "./lib/crypto";
+const { notifHandler, smartNotifierHandler, THullUserUpdateMessage } = require("hull/lib/utils");
+const bodyParser = require("body-parser");
 
-export default function server(app: express, { bottleneckCluster, hostSecret }: Object) {
-  app.get("/admin.html", (req, res) => {
+const {
+  webhookHandler,
+  statusCheck,
+  batchHandler,
+  updateUser
+} = require("./actions");
+const applyAgent = require("./middlewares/apply-agent");
+const { encrypt } = require("./lib/crypto");
+
+function server(app: $Application, { hostSecret }: Object) {
+  app.get("/admin.html", (req: TRequest, res: $Response) => {
     const token = encrypt(req.hull.config, hostSecret);
     res.render("admin.html", { hostname: req.hostname, token });
   });
 
-  app.use(applyAgent(bottleneckCluster));
+  app.use(applyAgent());
 
   app.all("/webhook", bodyParser.json(), webhookHandler);
 
-  app.all("/status", actions.statusCheck);
-
-  app.use(requireConfiguration);
+  app.all("/status", statusCheck);
 
   app.use("/batch", notifHandler({
     userHandlerOptions: {
       groupTraits: false
     },
     handlers: {
-      "user:update": actions.batchHandler
+      "user:update": batchHandler
     }
   }));
 
@@ -37,22 +40,26 @@ export default function server(app: express, { bottleneckCluster, hostSecret }: 
       groupTraits: false
     },
     handlers: {
-      "user:update": actions.updateUser
+      "user:update": updateUser
     }
   }));
 
   app.use("/smart-notifier", smartNotifierHandler({
     handlers: {
-      "user:update": (ctx: Object, messages: Array<Object>) => {
-        ctx.smartNotifierResponse.setFlowControl({
-          type: "next",
-          in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
-          size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
-        });
-        return actions.updateUser(ctx, messages);
+      "user:update": (ctx: THullReqContext, messages: Array<THullUserUpdateMessage>) => {
+        if (ctx.smartNotifierResponse) {
+          ctx.smartNotifierResponse.setFlowControl({
+            type: "next",
+            in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
+            size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
+          });
+        }
+        return updateUser(ctx, messages);
       }
     }
   }));
 
   return app;
 }
+
+module.exports = server;

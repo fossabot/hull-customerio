@@ -1,10 +1,10 @@
-import nock from "nock";
-import _ from "lodash";
+const nock = require("nock");
+const _ = require("lodash");
 
 module.exports = function mocks() {
   const API_PREFIX = "https://track.customer.io/api/v1";
   return {
-    setUpIdentifyCustomerNock: (userId, email, attributes, callback) => nock(API_PREFIX)
+    setUpIdentifyCustomerNock: (userId, email, attributes, callback) => nock(API_PREFIX, {"encodedQueryParams":true})
       .put(`/customers/${userId}`, _.merge({
         email,
         created_at: /.*/

@@ -1,8 +1,14 @@
 /* @flow */
-import _ from "lodash";
-import moment from "moment";
+const _ = require("lodash");
+const moment = require("moment");
 
-export default class AttributesMapper {
+class AttributesMapper {
+  /**
+   * Gets or sets the list of mappings
+   *
+   * @type {Array<string>}
+   * @memberof AttributesMapper
+   */
   userAttributesMapping: Array<string>;
 
   /**
@@ -67,6 +73,12 @@ export default class AttributesMapper {
     return attributes;
   }
 
+  /**
+   * Utility function to replace nested account.xxx mappings by account_xxx
+   * in the userAttributesMapping.
+   *
+   * @memberof AttributesMapper
+   */
   clearAccountsMapping() {
     this.userAttributesMapping.forEach((v, i, a) => {
       if (_.startsWith(v, "account.")) {
@@ -75,3 +87,5 @@ export default class AttributesMapper {
     });
   }
 }
+
+module.exports = AttributesMapper;

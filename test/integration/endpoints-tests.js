@@ -1,9 +1,9 @@
 /* global describe, it, beforeEach, afterEach */
 
-import Minihull from "minihull";
-import assert from "assert";
-import bootstrap from "./support/bootstrap";
-import axios from "axios";
+const Minihull = require("minihull");
+const assert = require("assert");
+const bootstrap = require("./support/bootstrap");
+const superagent = require("superagent");
 
 describe("Connector Endpoints", function test() {
   let minihull;
@@ -27,21 +27,8 @@ describe("Connector Endpoints", function test() {
     server.close();
   });
 
-
-  it("should return 403 status if id mapping is undefined", done => {
-    minihull.notifyConnector("123456789012345678901234", "http://localhost:8000/notify", "user_report:update", {
-      user: { email: "foo@test2.com", test_id: "34567", testAttribute: "test" },
-      changes: {},
-      events: [],
-      segments: [{ id: "hullSegmentId", name: "testSegment" }]
-    }).catch(error => {
-      assert.equal(error.status, 403);
-      done();
-    });
-  });
-
   it("should return status ok for admin.html endpoint", done => {
-    axios.get("http://localhost:8000/admin.html").then(res => {
+    superagent.get("http://localhost:8000/admin.html").then(res => {
       assert.equal(res.status, 200);
       done();
     });
