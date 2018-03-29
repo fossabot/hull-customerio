@@ -26,7 +26,7 @@
     "build:server": "babel server -d build",
     "start": "node -r newrelic build",
     "start:dev": "NODE_ENV=development LOG_LEVEL=debug babel-watch -L server",
-    "test": "yarn run test:lint && yarn run test:integration && yarn run test:unit && yarn run test:manifest",
+    "test": "yarn run test:lint && yarn run test:combined && yarn run test:manifest",
     "test:lint": "eslint server",
     "test:flow": "flow check",
     "test:combined": "NODE_ENV=test jest ./test",
