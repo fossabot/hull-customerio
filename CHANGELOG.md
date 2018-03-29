@@ -1,5 +1,9 @@
 ## CHANGELOG
 
+## 0.1.8
+
+- rely on `user.created_at` trait instead of calculating it on every update - possible loop condition
+
 ## 0.1.7
 
 - upgrade hull to 0.13.10 - should handle unsupported notification channels more gracefully
