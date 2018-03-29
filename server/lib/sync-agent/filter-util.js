@@ -95,15 +95,20 @@ class FilterUtil {
         return results.toSkip.push(envelope);
       }
 
-      if (this.deletionEnabled && !this.matchesSynchronizedSegments(envelope) && _.get(envelope, "message.user.traits_customerio/created_at", null) !== null) {
+      if (this.deletionEnabled && !this.matchesSynchronizedSegments(envelope)
+        && _.get(envelope, "message.user.traits_customerio/created_at", null) !== null
+        && _.get(envelope, "message.user.traits_customerio/deleted_at", null) === null) {
         return results.toDelete.push(envelope);
       } else if (this.deletionEnabled && !this.matchesSynchronizedSegments(envelope) && _.get(envelope, "message.user.traits_customerio/created_at", null) === null) {
         envelope.skipReason = SHARED_MESSAGES.SKIP_NOTINSEGMENTS;
         envelope.opsResult = "skip";
         return results.toSkip.push(envelope);
+      } else if (this.deletionEnabled && !this.matchesSynchronizedSegments(envelope) && _.get(envelope, "message.user.traits_customerio/deleted_at", null) !== null) {
+        envelope.skipReason = "User was already deleted";
+        envelope.opsResult = "skip";
+        return results.toSkip.push(envelope);
       }
 
-      console.log(envelope.user);
       if (_.isNil(_.get(envelope, `message.user.${this.userAttributeServiceId}`, null))) {
         envelope.skipReason = SHARED_MESSAGES.SKIP_NOIDVALUE;
         envelope.opsResult = "skip";
@@ -112,6 +117,16 @@ class FilterUtil {
 
       if (_.get(envelope, "message.user.traits_customerio/created_at", null) === null) {
         return results.toInsert.push(envelope);
+      }
+
+      // Verify that actually something changed on the customer object by comparing it with the hash
+      // otherwise skip the API calls
+      // TODO: this not skip users who have any event to process, this is a possible API calls optimization place since
+      // if we have no changes on the user he/she was created in c.io we don't need to update before sending events
+      const customerHash = _.get(envelope, "message.user.traits_customerio/hash", "");
+      if (customerHash !== "" && customerHash === envelope.hash && _.get(envelope, "customerEvents", []).length === 0) {
+        _.set(envelope, "skipReason", SHARED_MESSAGES.SKIP_NOCHANGES);
+        return results.toSkip.push(envelope);
       }
 
       return results.toUpdate.push(envelope);
@@ -138,29 +153,26 @@ class FilterUtil {
    * Deduplicates messages by user.id and joins all events into a single message.
    *
    * @param {Array<THullUserUpdateMessage>} messages The list of messages to deduplicate.
-   * @returns {Array<TUserUpdateEnvelope>} A list of unique messages.
+   * @returns {Array<THullUserUpdateMessage>} A list of unique messages.
    * @memberof FilterUtil
    */
-  deduplicateMessages(messages: Array<THullUserUpdateMessage>): Array<TUserUpdateEnvelope> {
+  deduplicateMessages(messages: Array<THullUserUpdateMessage>): Array<THullUserUpdateMessage> {
     if (!messages || !_.isArray(messages) || messages.length === 0) {
       return [];
     }
 
     return _.chain(messages)
       .groupBy("user.id")
-      .map((msgs: Array<THullUserUpdateMessage>) => {
-        const usrMsg = _.cloneDeep(_.last(_.sortBy(msgs, ["user.indexed_at"])));
+      .map((groupedMessages: Array<THullUserUpdateMessage>): THullUserUpdateMessage => {
+        const dedupedMessage = _.cloneDeep(_.last(_.sortBy(groupedMessages, ["user.indexed_at"])));
         const hashedEvents = {};
-        _.set(usrMsg, "events", []);
-        msgs.forEach((m: THullUserUpdateMessage) => {
-          m.events.forEach(e => {
-            if (_.get(hashedEvents, e.id, null) === null) {
-              usrMsg.events.push(e);
-              _.set(hashedEvents, e.id, e);
-            }
+        groupedMessages.forEach((m: THullUserUpdateMessage) => {
+          _.get(m, "events", []).forEach((e: Object) => {
+            _.set(hashedEvents, e.event_id, e);
           });
         });
-        return { message: usrMsg };
+        dedupedMessage.events = _.values(hashedEvents);
+        return dedupedMessage;
       })
       .value();
   }

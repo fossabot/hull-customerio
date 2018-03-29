@@ -49,11 +49,11 @@ describe("FilterUtil", () => {
       ];
 
       const util = new FilterUtil();
- 
+
       const actual = util.deduplicateMessages(messages);
- 
-      expect(actual[0].message.events).toHaveLength(3);
-      expect(actual[0].message.user).toEqual({
+
+      expect(actual[0].events).toHaveLength(3);
+      expect(actual[0].user).toEqual({
         id: 1,
         name: "John Smith",
         indexed_at: "2018-02-01"

@@ -1,6 +1,6 @@
 /* @flow */
 import type { THullEvent, THullUser, THullSegment } from "hull";
-import type { IMappingUtilOptions, ICustomerIoEvent, ICustomerIoCustomer } from "../types";
+import type { IMappingUtilOptions, ICustomerIoEvent, TCustomerIoCustomer } from "../types";
 
 const _ = require("lodash");
 const moment = require("moment");
@@ -24,14 +24,6 @@ const EVENTTYPE_MAPPINGS = {
   email_unsubscribed: "Unsubscribed"
 };
 
-function createAttributeName(traitName: string): string {
-  if (_.startsWith(traitName, "traits_")) {
-    return traitName.substr(7).split("/").join("-");
-  }
-
-  return traitName.split("/").join("-");
-}
-
 class MappingUtil {
   /**
    * Gets or sets the service identifier of a Hull user.
@@ -54,17 +46,25 @@ class MappingUtil {
     this.userAttributeMappings = _.get(options, "userAttributeMappings", []);
   }
 
+  createAttributeName(traitName: string): string {
+    if (_.startsWith(traitName, "traits_")) {
+      return traitName.substr(7).split("/").join("-");
+    }
+
+    return traitName.split("/").join("-");
+  }
+
   /**
    * Maps the hull user to a customer for the customer.io API.
    *
    * @param {THullUser} user The user object of Hull.
    * @param {Array<THullSegment>} segments The segments the user
-   * @returns {ICustomerIoCustomer} The customer object to use with the customer.io API.
+   * @returns {TCustomerIoCustomer} The customer object to use with the customer.io API.
    * @memberof MappingUtil
    */
-  mapToServiceUser(user: THullUser, segments: Array<THullSegment>): ICustomerIoCustomer {
+  mapToServiceUser(user: THullUser, segments: Array<THullSegment>): TCustomerIoCustomer {
     // Default required/recommended attributes
-    let serviceObj: ICustomerIoCustomer = {
+    let serviceObj: TCustomerIoCustomer = {
       id: _.get(user, this.userAttributeServiceId, null),
       email: _.get(user, "email", null),
       created_at: moment(_.get(user, "created_at")).unix()
@@ -84,9 +84,18 @@ class MappingUtil {
     }
 
     const customAttributes = _.mapKeys(filteredAttributes, (val, key) => {
-      return createAttributeName(key);
+      return this.createAttributeName(key);
     });
     serviceObj = _.merge(serviceObj, customAttributes);
+
+    serviceObj = _.mapValues(serviceObj, (value, key) => {
+      if (key !== "created_at"
+        && (_.endsWith(key, "_date") || _.endsWith(key, "_at"))
+        && moment(value).isValid()) {
+        return moment(value).format("X");
+      }
+      return value;
+    });
 
     return serviceObj;
   }
@@ -104,7 +113,7 @@ class MappingUtil {
       data: _.get(event, "properties")
     };
 
-    if (event.name === "page") {
+    if (event.event === "page") {
       _.set(serviceEvent, "type", "page");
     }
 
@@ -114,17 +123,18 @@ class MappingUtil {
   /**
    * Maps the customer object to hull attributes.
    *
-   * @param {ICustomerIoCustomer} customer The customer object.
+   * @param {TCustomerIoCustomer} customer The customer object.
    * @param {Date} updatedAt The timestamp when the sync happened.
    * @returns {Object} The traits object.
    * @memberof MappingUtil
    */
-  mapToHullTraits(customer: ICustomerIoCustomer, updatedAt: Date): Object {
+  mapToHullTraits(customer: TCustomerIoCustomer, updatedAt: Date): Object {
     const hashUtil = new HashUtil();
 
     const hash = hashUtil.hash(customer);
     return {
       id: _.get(customer, "id", null),
+      created_at: _.get(customer, "created_at", null),
       hash,
       synced_at: updatedAt,
       deleted_at: null
@@ -168,10 +178,8 @@ class MappingUtil {
    * @returns {THullEvent} The event object or null if it cannot be mapped.
    * @memberof MappingUtil
    */
-  mapWebhookToHullEvent(payload: Object): THullEvent {
+  mapWebhookToHullEvent(payload: Object): THullEvent | null {
     if (_.get(payload, "data", null) === null) {
-      // TODO: Verify what error we should throw
-      // $FlowFixMe: Throw error
       return null;
     }
     // Handle properties
@@ -199,8 +207,6 @@ class MappingUtil {
     const eventName = _.get(EVENTTYPE_MAPPINGS, _.get(payload, "event_type"), "n/a");
 
     if (eventName === "n/a") {
-      // TODO: Verify what error we should throw
-      // $FlowFixMe: Throw error
       return null;
     }
 

@@ -1,16 +1,13 @@
 /* @flow */
 import type { THullReqContext, THullUserUpdateMessage } from "hull";
-import type { IMetricsClient, IServiceClientOptions, TUserUpdateEnvelope, IFilterUtilOptions, IMappingUtilOptions, IServiceCredentials, IOperationsUtilOptions } from "./types";
+import type { IMetricsClient, IServiceClientOptions, TUserUpdateEnvelope, IFilterUtilOptions, IMappingUtilOptions, IServiceCredentials, TFilterResults, ICustomerIoEvent } from "./types";
 
 const _ = require("lodash");
-const moment = require("moment");
 const Promise = require("bluebird");
-const { TransientError } = require("hull/lib/errors");
 
 const FilterUtil = require("./sync-agent/filter-util");
 const ServiceClient = require("./service-client");
 const MappingUtil = require("./sync-agent/mapping-util");
-const OperationsUtil = require("./sync-agent/operations-util");
 const HashUtil = require("./sync-agent/hash-util");
 const SHARED_MESSAGES = require("./shared-messages");
 
@@ -37,16 +34,16 @@ class SyncAgent {
 
   /**
    * Gets or sets the filter utility.
-   * 
+   *
    * @type {FilterUtil}
    * @memberof SyncAgent
    */
   filterUtil: FilterUtil;
 
   /**
-   * Gets or sets the client to communicate with 
+   * Gets or sets the client to communicate with
    * the customer.io API.
-   * 
+   *
    * @type {ServiceClient}
    * @memberof SyncAgent
    */
@@ -54,7 +51,7 @@ class SyncAgent {
 
   /**
    * Gets or sets the mapping utility.
-   * 
+   *
    * @type {MappingUtil}
    * @memberof SyncAgent
    */
@@ -62,31 +59,25 @@ class SyncAgent {
 
   /**
    * Gets or sets the service credentials.
-   * 
+   *
    * @type {IServiceCredentials}
    * @memberof SyncAgent
    */
   serviceCredentials: IServiceCredentials;
 
   /**
-   * Gets or sets the operations utility.
-   * 
-   * @type {OperationsUtil}
-   * @memberof SyncAgent
-   */
-  operationsUtil: OperationsUtil;
-
-  /**
    * Gets or sets the hash utility.
-   * 
+   *
    * @type {HashUtil}
    * @memberof SyncAgent
    */
   hashUtil: HashUtil;
 
+  segmentPropertyName: string;
+
   /**
    * Creates an instance of SyncAgent.
-   * @param {THullReqContext} reqContext The Hull request context. 
+   * @param {THullReqContext} reqContext The Hull request context.
    * @memberof SyncAgent
    */
   constructor(reqContext: THullReqContext) {
@@ -95,8 +86,8 @@ class SyncAgent {
       metricsClient: _.get(reqContext, "metric"),
       logger: _.get(reqContext, "client.logger"),
       credentials: {
-        username: _.get(reqContext, "connector.private_settings.site_id", null),
-        password: _.get(reqContext, "connector.private_settings.api_key", null)
+        username: _.get(reqContext, "ship.private_settings.site_id", null),
+        password: _.get(reqContext, "ship.private_settings.api_key", null)
       },
       baseApiUrl: BASE_API_URL
     };
@@ -110,31 +101,25 @@ class SyncAgent {
 
     // Init filter util
     const filterUtilOptions: IFilterUtilOptions = {
-      synchronizedSegments: _.get(reqContext, "connector.private_settings.synchronized_segments", []),
+      synchronizedSegments: _.get(reqContext, "ship.private_settings.synchronized_segments", []),
       segmentPropertyName: SEGMENT_PROPERTY_NAME,
       ignoreUsersWithoutEmail: true,
-      deletionEnabled: _.get(reqContext, "connector.private_settings.enable_user_deletion", false),
-      synchronizedEvents: _.get(reqContext, "connector.private_settings.events_filter", []),
-      userAttributeServiceId: _.get(reqContext, "connector.private_settings.user_id_mapping", "external_id")
+      deletionEnabled: _.get(reqContext, "ship.private_settings.enable_user_deletion", false),
+      synchronizedEvents: _.get(reqContext, "ship.private_settings.events_filter", []),
+      userAttributeServiceId: _.get(reqContext, "ship.private_settings.user_id_mapping", "external_id")
     };
 
     this.filterUtil = new FilterUtil(filterUtilOptions);
 
     // Init mapping util
     const mappingUtilOptions: IMappingUtilOptions = {
-      userAttributeServiceId: _.get(reqContext, "connector.private_settings.user_id_mapping", "external_id"),
-      userAttributeMappings: _.get(reqContext, "connector.private_settings.synchronized_attributes", [])
+      userAttributeServiceId: _.get(reqContext, "ship.private_settings.user_id_mapping", "external_id"),
+      userAttributeMappings: _.get(reqContext, "ship.private_settings.synchronized_attributes", [])
     };
 
     this.mappingUtil = new MappingUtil(mappingUtilOptions);
 
-    // Init the operations util
-    const operationsUtilOptions: IOperationsUtilOptions = {
-      segmentPropertyName: SEGMENT_PROPERTY_NAME
-    };
-    this.operationsUtil = new OperationsUtil(operationsUtilOptions);
-    this.operationsUtil.filterUtil = this.filterUtil;
-    this.operationsUtil.mappingUtil = this.mappingUtil;
+    this.segmentPropertyName = SEGMENT_PROPERTY_NAME;
 
     // Init the hash util
     this.hashUtil = new HashUtil();
@@ -143,7 +128,7 @@ class SyncAgent {
   /**
    * Checks whether the connector is configured with
    * credentials or not.
-   * 
+   *
    * @returns {boolean} True if site id and password are set; otherwise false.
    * @memberof SyncAgent
    */
@@ -155,12 +140,33 @@ class SyncAgent {
   /**
    * Performs a call against the API to check whether
    * the credentials are valid or not.
-   * 
+   *
    * @returns {Promise<boolean>} True if credentials are valid; otherwise false.
    * @memberof SyncAgent
    */
   checkAuth(): Promise<boolean> {
     return this.serviceClient.checkValidCredentials();
+  }
+
+  createUserUpdateEnvelopes(messages: Array<THullUserUpdateMessage>): Array<TUserUpdateEnvelope> {
+    return _.map(messages, (message): TUserUpdateEnvelope => {
+      const hullUser = _.cloneDeep(_.get(message, "user", {}));
+      _.set(hullUser, "account", _.get(message, "account", {}));
+
+      const allEvents = _.map(_.get(message, "events", []), (event) => this.mappingUtil.mapToServiceEvent(event));
+      const filteredEvents: TFilterResults<ICustomerIoEvent> = this.filterUtil.filterEvents(allEvents);
+      const customer = this.mappingUtil.mapToServiceUser(hullUser, _.get(message, this.segmentPropertyName, []));
+
+      const envelope: TUserUpdateEnvelope = {
+        message,
+        hullUser,
+        customer,
+        hash: this.hashUtil.hash(customer),
+        customerEvents: filteredEvents.toInsert,
+        customerEventsToSkip: filteredEvents.toSkip
+      };
+      return envelope;
+    });
   }
 
   /**
@@ -171,7 +177,7 @@ class SyncAgent {
    * @returns {Promise<any>} A promise which contains all operation results.
    * @memberof SyncAgent
    */
-  async sendUserMessages(messages: Array<THullUserUpdateMessage>, isBatch: boolean = false): Promise<any> {
+  async sendUserMessages(messages: Array<THullUserUpdateMessage>): Promise<*> {
     if (this.isConfigured() === false) {
       // We don't need a log line here, it's already in the status that the connector is not configured.
       return Promise.resolve();
@@ -181,140 +187,93 @@ class SyncAgent {
       return Promise.resolve();
     }
 
-    try {
-      const areCredentialsValid = await this.serviceClient.checkAuth();
-      if (!areCredentialsValid) {
-        return Promise.resolve();
-      }
-    } catch (error) {
-      // We don't need a log line here, it's already in the status that the connector is not authenticated.
-      return Promise.resolve();
-    }
+    // deduplicate all messages - merge events but take only last message from notification
+    const dedupedMessages: Array<THullUserUpdateMessage> = this.filterUtil.deduplicateMessages(messages);
 
-    // Filter all messages
-    const dedupedEnvelopes: Array<TUserUpdateEnvelope> = this.filterUtil.deduplicateMessages(messages);
-    const filteredEnvelopes: TFilterResults<TUserUpdateEnvelope> = this.filterUtil.filterUsersBySegment(dedupedEnvelopes);
+    // create envelopes with all necessary data
+    const userUpdateEnvelopes: Array<TUserUpdateEnvelope> = this.createUserUpdateEnvelopes(dedupedMessages);
 
-    // Prepare the message to operate upon
-    const opsEnvelopes: TFilterResults<TUserUpdateEnvelope> = this.operationsUtil.composeCombinedUserAccountObject(filteredEnvelopes);
-    opsEnvelopes.toInsert = _.map(opsEnvelopes.toInsert, (envelope: TUserUpdateEnvelope) => {
-      return this.operationsUtil.composeServiceObjects(envelope);
-    });
-    opsEnvelopes.toUpdate = _.map(opsEnvelopes.toUpdate, (envelope: TUserUpdateEnvelope) => {
-      return this.operationsUtil.composeServiceObjects(envelope);
-    });
-    opsEnvelopes.toDelete = _.map(opsEnvelopes.toDelete, (envelope: TUserUpdateEnvelope) => {
-      return this.operationsUtil.composeServiceObjects(envelope);
-    });
+    // filter those envelopes to get `toSkip`, `toInsert`, `toUpdate` and `toDelete`
+    const filteredEnvelopes: TFilterResults<TUserUpdateEnvelope> = this.filterUtil.filterUsersBySegment(userUpdateEnvelopes);
 
-    // Verify that actually something changed on the customer object by comparing it with the hash
-    // otherwise skip the API calls
-    const envelopesToUpdate = [];
-    _.forEach(opsEnvelopes.toUpdate, (envelope) => {
-      const customerHash = _.get(envelope, "hullUser.traits_customerio/hash", "");
-      if (customerHash === "" || (customerHash !== this.hashUtil.hash(envelope.customer))) {
-        return envelopesToUpdate.push(envelope);
-      }
-      _.set(envelope, "skipReason", SHARED_MESSAGES.SKIP_NOCHANGES);
-      opsEnvelopes.toSkip.push(envelope);
+    this.client.logger.debug("sendUserMessages", {
+      toSkip: filteredEnvelopes.toSkip.length,
+      toUpdate: filteredEnvelopes.toUpdate.length,
+      toInsert: filteredEnvelopes.toInsert.length,
+      toDelete: filteredEnvelopes.toDelete.length
     });
-    opsEnvelopes.toUpdate = envelopesToUpdate;
 
     // Process all users that should be skipped
     filteredEnvelopes.toSkip.forEach((envelope: TUserUpdateEnvelope) => {
       this.client.asUser(envelope.message.user).logger.info("outgoing.user.skip", { reason: envelope.skipReason });
     });
+
     // Process all users that should be inserted
-    filteredEnvelopes.toInsert.forEach(async (envelope: TUserUpdateEnvelope) => {
-      try {
-        this.metric.increment("ship.outgoing.user", 1);
-        await this.serviceClient.updateCustomer(envelope.customer);
-        const userTraits = this.mappingUtil.mapToHullTraits(envelope.customer, new Date());
-        const userScopedClient = this.client.asUser(envelope.message.user);
-        userScopedClient.traits(userTraits, { source: "customerio" }).then(() => {
-          userScopedClient.logger.info("outgoing.user.success", { data: envelope.customer, operation: "updateCustomer" });
-        });
-        // Process the events
-        if (_.get(envelope, "customerEventsToSkip", []).length > 0) {
-          const eventSkipLogData = _.map(_.get(envelope, "customerEventsToSkip"), e => e.name);
-          userScopedClient.logger.info("outgoing.event.skip", { reason: SKIP_NOTWHITELISTEDEVENTS, events: eventSkipLogData });
-        }
+    await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
 
-        if (_.get(envelope, "customerEvents", []).length > 0) {
-          if (_.get(envelope, "customer.id", null) === null) {
-            // No ID, send as anonymous events
-            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
-              this.metric.increment("ship.outoing.event", 1);
-              await this.serviceClient.sendAnonymousEvent(event);
-            });
-            const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
-            userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
-          } else {
-            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
-              this.metric.increment("ship.outoing.event", 1);
-              await this.serviceClient.sendEvent(envelope.customer.id, event);
-            });
-            const eventsCustomerLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
-            userScopedClient.logger.info("outgoing.event.success", { events: eventsCustomerLogData, operation: "sendEvent" });
-          }
-        }
-      } catch(err) {
-        throw new TransientError("Failed to update a user or one of its events, see innerException for more details.", { innerException: err });
-      }
-    });
     // Process all users that should be updated
-    filteredEnvelopes.toUpdate.forEach(async (envelope: TUserUpdateEnvelope) => {
-      try {
-        this.metric.increment("ship.outgoing.user", 1);
-        await this.serviceClient.updateCustomer(envelope.customer);
-        const userTraits = this.mappingUtil.mapToHullTraits(envelope.customer, new Date());
-        const userScopedClient = this.client.asUser(envelope.message.user);
-        userScopedClient.traits(userTraits, { source: "customerio" }).then(() => {
+    await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
+
+    // Process all users that should be deleted
+    await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
+
+    return true;
+  }
+
+  updateUserEnvelope(envelope: TUserUpdateEnvelope): Promise<*> {
+    this.metric.increment("ship.outgoing.users", 1);
+    const userTraits = this.mappingUtil.mapToHullTraits(envelope.customer, new Date());
+    const userScopedClient = this.client.asUser(envelope.message.user);
+    return this.serviceClient.updateCustomer(envelope.customer)
+      .then(() => {
+        return userScopedClient.traits(userTraits, { source: "customerio" }).then(() => {
           userScopedClient.logger.info("outgoing.user.success", { data: envelope.customer, operation: "updateCustomer" });
         });
+      })
+      .then(() => {
         // Process the events
         if (_.get(envelope, "customerEventsToSkip", []).length > 0) {
           const eventSkipLogData = _.map(_.get(envelope, "customerEventsToSkip"), e => e.name);
-          userScopedClient.logger.info("outgoing.event.skip", { reason: SKIP_NOTWHITELISTEDEVENTS, events: eventSkipLogData });
+          userScopedClient.logger.info("outgoing.event.skip", { reason: SHARED_MESSAGES.SKIP_NOTWHITELISTEDEVENTS, events: eventSkipLogData });
         }
 
-        if (_.get(envelope, "customerEvents", []).length > 0) {
-          if (_.get(envelope, "customer.id", null) === null) {
-            // No ID, send as anonymous events
-            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
-              this.metric.increment("ship.outoing.event", 1);
-              await this.serviceClient.sendAnonymousEvent(event);
+        if (_.get(envelope, "customerEvents", []).length === 0) {
+          return Promise.resolve();
+        }
+
+        if (!envelope.customer || !envelope.customer.id) {
+          // No ID, send as anonymous events
+          return Promise.all(_.get(envelope, "customerEvents", []).map((event) => {
+            this.metric.increment("ship.outoing.events", 1);
+            return this.serviceClient.sendAnonymousEvent(event);
+          }))
+            .then(() => {
+              const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
+              return userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
             });
-            const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
-            userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
-          } else {
-            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
-              this.metric.increment("ship.outoing.event", 1);
-              await this.serviceClient.sendEvent(envelope.customer.id, event);
-            });
+        }
+        return Promise.all(_.get(envelope, "customerEvents", []).map((event) => {
+          this.metric.increment("ship.outoing.events", 1);
+          return this.serviceClient.sendEvent(envelope.customer.id, event);
+        }))
+          .then(() => {
             const eventsCustomerLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
             userScopedClient.logger.info("outgoing.event.success", { events: eventsCustomerLogData, operation: "sendEvent" });
-          }
-        }
-      } catch(err) {
-        throw new TransientError("Failed to update a user or one of its events, see innerException for more details.", { innerException: err });
-      }
-    });
-    // Process all users that should be deleted
-    filteredEnvelopes.toDelete.forEach(async (envelope: TUserUpdateEnvelope) => {
-      try {
-        this.metric.increment("ship.outgoing.user", 1);
-        await this.serviceClient.deleteCustomer(_.get(envelope, "customer.id"));
+          });
+      });
+  }
 
-        const userScopedClient = this.client.asUser(envelope.message.user);
-        userScopedClient.traits({ deleted_at: new Date(), id: null, hash: null, synced_at: null}, { source: "customerio" }).then(() => {
-          userScopedClient.logger.info("outgoing.user.success", { data: envelope.customer, operation: "deleteCustomer" });
+  deleteUserEnvelope(envelope: TUserUpdateEnvelope): Promise<*> {
+    this.metric.increment("ship.outgoing.users", 1);
+    const userScopedClient = this.client.asUser(envelope.message.user);
+    return this.serviceClient.deleteCustomer(_.get(envelope, "customer.id"))
+      .then(() => {
+        return userScopedClient.traits({
+          deleted_at: new Date(), id: null, hash: null, synced_at: null, created_at: null
+        }, { source: "customerio" }).then(() => {
+          return userScopedClient.logger.info("outgoing.user.success", { data: envelope.customer, operation: "deleteCustomer" });
         });
-
-      } catch(err) {
-        throw new TransientError("Failed to delete a user, see innerException for more details.", { innerException: err });
-      }
-    });
+      });
   }
 
   /**
@@ -324,27 +283,27 @@ class SyncAgent {
    * @returns {Promise<any>} A promise which returns the result of the Hull logger call.
    * @memberof SyncAgent
    */
-  handleWebhook(payload: Object): Promise<any> {
+  handleWebhook(payload: Object): Promise<*> {
     const userIdent = this.mappingUtil.mapWebhookToUserIdent(payload);
     const event = this.mappingUtil.mapWebhookToHullEvent(payload);
 
-    this.metric.increment("hip.incoming.events", 1);
-    if (event === null ) {
-      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_INVALIDEVENT , data: payload });
+    this.metric.increment("ship.incoming.events", 1);
+    if (event === null) {
+      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_INVALIDEVENT, data: payload });
       return Promise.resolve();
     }
 
-    if (_.keys(userIdent).length === 0) {
-      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_NOUSERIDENT , data: payload });
+    if (_.size(userIdent) === 0) {
+      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_NOUSERIDENT, data: payload });
       return Promise.resolve();
     }
 
     const userScopedClient = this.client.asUser(userIdent);
 
-    return asUser.track(event.event, event.properties, event.context).then(() => {
-      return asUser.logger.info("incoming.event.success", { event });
+    return userScopedClient.track(event.event, event.properties, event.context).then(() => {
+      return userScopedClient.logger.info("incoming.event.success", { event });
     }).catch((err) => {
-      return asUser.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_TRACKFAILED, message: err.message, innerException: err });
+      return userScopedClient.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_TRACKFAILED, message: err.message, innerException: err });
     });
   }
 }

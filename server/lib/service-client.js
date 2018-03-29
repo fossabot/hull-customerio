@@ -1,12 +1,12 @@
 /* @flow */
-import type { IServiceClientOptions, IServiceCredentials, ILogger, IMetricsClient, ICustomerIoEvent, ICustomerIoCustomer } from "./types";
+import type { IServiceClientOptions, IServiceCredentials, ILogger, IMetricsClient, ICustomerIoEvent, TCustomerIoCustomer } from "./types";
 
 const _ = require("lodash");
 const superagent = require("superagent");
 const SuperagentThrottle = require("superagent-throttle");
 const prefixPlugin = require("superagent-prefix");
 
-const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin } = require("hull/lib/utils");
+const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin, superagentErrorPlugin } = require("hull/lib/utils");
 
 class ServiceClient {
   /**
@@ -68,25 +68,25 @@ class ServiceClient {
     this.agent = superagent.agent()
       .use(prefixPlugin(this.urlPrefix))
       .use(throttle.plugin(this.auth.username))
+      .use(superagentErrorPlugin({ timeout: 10000 }))
       .use(superagentUrlTemplatePlugin())
       .use(superagentInstrumentationPlugin({ logger: this.logger, metric: this.metricsClient }))
       .set({ "Content-Type": "application/json" })
       .auth(this.auth.username, this.auth.password)
-      .ok(res => res.status === 200) // we reject the promise for all non 200 responses
-      .timeout({ response: 10000 });
+      .ok(res => res.status === 200); // we reject the promise for all non 200 responses
   }
 
   /**
    * Checks whether the provided credentials are valid or not.
    *
-   * @returns {Promise<boolean>} 
+   * @returns {Promise<boolean>}
    * @memberof ServiceClient
    */
   checkValidCredentials(): Promise<boolean> {
     return this.agent.get("/auth").then(() => {
       return true;
     }).catch((err) => {
-      if(_.get(err, "response.status") === 401) {
+      if (_.get(err, "response.status") === 401) {
         return false;
       }
       throw err;
@@ -95,12 +95,13 @@ class ServiceClient {
 
   /**
    * Creates or updates a customer.
-   * 
-   * @param {ICustomerIoCustomer} customer The customer data.
-   * @returns {Promise<ICustomerIoCustomer>} A promise which resolves the customer if operation succeeded.
+   *
+   * @param {TCustomerIoCustomer} customer The customer data.
+   * @returns {Promise<TCustomerIoCustomer>} A promise which resolves the customer if operation succeeded.
    * @memberof ServiceClient
+   * @see https://learn.customer.io/api/#apicustomers_update
    */
-  updateCustomer(customer: ICustomerIoCustomer): Promise<ICustomerIoCustomer> {
+  updateCustomer(customer: TCustomerIoCustomer): Promise<TCustomerIoCustomer> {
     const attributes = _.omit(customer, "id");
     const id = _.get(customer, "id");
     return this.agent.put("/api/v1/customers/{{id}}").tmplVar({ id }).send(attributes).then(() => {
@@ -114,6 +115,7 @@ class ServiceClient {
    * @param {string} id The identifier of the customer to delete.
    * @returns {Promise<string>} A promise which resolves to the identifier if operation succeeded.
    * @memberof ServiceClient
+   * @see https://learn.customer.io/api/#apicustomers_delete
    */
   deleteCustomer(id: string): Promise<string> {
     return this.agent.delete("/api/v1/customers/{{id}}").tmplVar({ id }).then(() => {
@@ -128,6 +130,8 @@ class ServiceClient {
    * @param {ICustomerIoEvent} event The event data.
    * @returns {Promise<ICustomerIoEvent>} A promise which resolves to the event data if operation succeeded.
    * @memberof ServiceClient
+   * @see https://learn.customer.io/api/#apievent_add
+   * @see https://learn.customer.io/api/#apipageview_event
    */
   sendEvent(id: string, event: ICustomerIoEvent): Promise<ICustomerIoEvent> {
     return this.agent.post("/api/v1/customers/{{id}}/events")
@@ -144,6 +148,7 @@ class ServiceClient {
    * @param {ICustomerIoEvent} event The event data.
    * @returns {Promise<ICustomerIoEvent>} A promise which resolves to the event data if operation succeeded.
    * @memberof ServiceClient
+   * @see https://learn.customer.io/api/#apianonymous_event_add
    */
   sendAnonymousEvent(event: ICustomerIoEvent): Promise<ICustomerIoEvent> {
     return this.agent.post("/api/v1/customers/events")

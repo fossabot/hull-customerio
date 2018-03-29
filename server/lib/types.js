@@ -1,6 +1,9 @@
 /* @flow */
 import type { THullUserUpdateMessage, THullUser } from "hull";
 
+export type TCustomerIoCustomerAttributeName = string;
+export type TCustomerIoCustomerAttributeValue = string | number | boolean | Date | Array<string>;
+
 export interface ILogger {
   log(message: ?any, ...optionalParams: any[]):void;
   info(message: ?any, ...optionalParams: any[]):void;
@@ -45,7 +48,7 @@ export interface IMappingUtilOptions {
   userAttributeMappings: Array<string>;
 }
 
-export interface ICustomerIoCustomer {
+export type TCustomerIoCustomer = {
   id: string; // required
   email?: string; // recommended
   created_at: number; // recommended UNIX timestamp
@@ -56,28 +59,25 @@ export interface IOperationsUtilOptions {
   segmentPropertyName: string;
 }
 
-
-export type TCustomerIoCustomerAttributeName = string;
-export type TCustomerIoCustomerAttributeValue = string | number | boolean | Date | Array<string>;
-
 export type TConnectorOperationResult = "success" | "error" | "skip";
 
 export type THashAlgorithm = "md5" | "sha1";
 
-export type TFilterResults<T> {
+export type TFilterResults<T> = {
   toSkip: Array<T>,
   toInsert: Array<T>,
   toUpdate: Array<T>,
   toDelete: Array<T>
-}
+};
 
 
-export type TUserUpdateEnvelope {
+export type TUserUpdateEnvelope = {
   message: THullUserUpdateMessage,
   hullUser: THullUser,
-  customer?: ICustomerIoCustomer,
+  customer: TCustomerIoCustomer,
+  hash: string,
   customerEvents?: Array<ICustomerIoEvent>,
   customerEventsToSkip?: Array<ICustomerIoEvent>,
   skipReason?: string,
   opsResult?: TConnectorOperationResult
-}
+};

@@ -12,7 +12,7 @@ function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
     const syncAgent = new SyncAgent(req.hull);
     const messages: Array<string> = [];
     let status: string = "ok";
-    const promises: Array<Promise> = [];
+    const promises: Array<Promise<*>> = [];
 
     if (_.isEmpty(_.get(connector, "private_settings.synchronized_segments", []))) {
       if (status !== "error") {
@@ -27,7 +27,7 @@ function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
     } else {
       promises.push(syncAgent.checkAuth()
         .then((valid) => {
-          if(!valid) {
+          if (!valid) {
             status = "error";
             messages.push("Invalid Credentials: Verify Site ID and API Key in Settings.");
           }
@@ -39,7 +39,7 @@ function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
 
     const handleResponse = () => {
       res.json({ status, messages });
-      client.logger.debug("ship.status", { status, messages });
+      client.logger.debug("connector.status", { status, messages });
       return client.put(`${connector.id}/status`, { status, messages });
     };
 

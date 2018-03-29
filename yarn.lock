@@ -2205,9 +2205,9 @@ flexbuffer@0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/flexbuffer/-/flexbuffer-0.0.6.tgz#039fdf23f8823e440c38f3277e6fef1174215b30"
 
-flow-bin@^0.66.0:
-  version "0.66.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.66.0.tgz#a96dde7015dc3343fd552a7b4963c02be705ca26"
+flow-bin@^0.69.0:
+  version "0.69.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.69.0.tgz#053159a684a6051fcbf0b71a2eb19a9679082da6"
 
 fn.name@1.0.x:
   version "1.0.1"
@@ -2641,7 +2641,7 @@ hull-client@^1.2.0:
     uuid "^3.0.1"
     winston "^2.2.0"
 
-hull@~0.13.11:
+hull@0.13.11:
   version "0.13.11"
   resolved "https://registry.yarnpkg.com/hull/-/hull-0.13.11.tgz#41aa97c38e5e3a12c071a25c90a707e6d802f127"
   dependencies:

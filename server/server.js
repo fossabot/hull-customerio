@@ -10,16 +10,13 @@ const {
   statusCheck,
   updateUser
 } = require("./actions");
-const applyAgent = require("./middlewares/apply-agent");
 const { encrypt } = require("./lib/crypto");
 
-function server(app: $Application, { hostSecret }: Object) {
+function server(app: $Application, { hostSecret }: Object): $Application {
   app.get("/admin.html", (req: TRequest, res: $Response) => {
     const token = encrypt(req.hull.config, hostSecret);
     res.render("admin.html", { hostname: req.hostname, token });
   });
-
-  app.use(applyAgent());
 
   app.all("/webhook", bodyParser.json(), webhookHandler);
 
