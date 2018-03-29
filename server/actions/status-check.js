@@ -3,7 +3,6 @@ import type { $Response } from "express";
 import type { THullRequest } from "hull";
 
 const _ = require("lodash");
-const Promise = require("bluebird");
 const SyncAgent = require("../lib/sync-agent");
 
 function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
@@ -27,14 +26,14 @@ function statusCheckAction(req: THullRequest, res: $Response): Promise<*> {
       messages.push("Missing Credentials: Site ID or API Key are not configured in Settings.");
     } else {
       promises.push(syncAgent.checkAuth()
-        .then(() => {
+        .then((valid) => {
+          if(!valid) {
+            status = "error";
+            messages.push("Invalid Credentials: Verify Site ID and API Key in Settings.");
+          }
         }).catch(err => {
           status = "error";
-          if (_.get(err, "response.status") === 401) {
-            messages.push("Invalid Credentials: Verify Site ID and API Key in Settings.");
-          } else {
-            messages.push(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown Exception")}`);
-          }
+          messages.push(`Error when trying to connect with Customer.io: ${_.get(err, "message", "Unknown Exception")}`);
         }));
     }
 

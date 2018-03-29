@@ -7,7 +7,6 @@ const moment = require("moment");
 const Promise = require("bluebird");
 const { TransientError } = require("hull/lib/errors");
 
-const AttributesMapper = require("./attributes-mapper");
 const FilterUtil = require("./sync-agent/filter-util");
 const ServiceClient = require("./service-client");
 const MappingUtil = require("./sync-agent/mapping-util");
@@ -226,7 +225,7 @@ class SyncAgent {
       this.client.asUser(envelope.message.user).logger.info("outgoing.user.skip", { reason: envelope.skipReason });
     });
     // Process all users that should be inserted
-    filteredEnvelopes.toInsert.forEach((envelope: TUserUpdateEnvelope) => {
+    filteredEnvelopes.toInsert.forEach(async (envelope: TUserUpdateEnvelope) => {
       try {
         this.metric.increment("ship.outgoing.user", 1);
         await this.serviceClient.updateCustomer(envelope.customer);
@@ -244,14 +243,14 @@ class SyncAgent {
         if (_.get(envelope, "customerEvents", []).length > 0) {
           if (_.get(envelope, "customer.id", null) === null) {
             // No ID, send as anonymous events
-            _.forEach(_.get(envelope, "customerEvents", []), (event) => {
+            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
               this.metric.increment("ship.outoing.event", 1);
               await this.serviceClient.sendAnonymousEvent(event);
             });
             const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
             userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
           } else {
-            _.forEach(_.get(envelope, "customerEvents", []), (event) => {
+            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
               this.metric.increment("ship.outoing.event", 1);
               await this.serviceClient.sendEvent(envelope.customer.id, event);
             });
@@ -264,7 +263,7 @@ class SyncAgent {
       }
     });
     // Process all users that should be updated
-    filteredEnvelopes.toUpdate.forEach((envelope: TUserUpdateEnvelope) => {
+    filteredEnvelopes.toUpdate.forEach(async (envelope: TUserUpdateEnvelope) => {
       try {
         this.metric.increment("ship.outgoing.user", 1);
         await this.serviceClient.updateCustomer(envelope.customer);
@@ -282,14 +281,14 @@ class SyncAgent {
         if (_.get(envelope, "customerEvents", []).length > 0) {
           if (_.get(envelope, "customer.id", null) === null) {
             // No ID, send as anonymous events
-            _.forEach(_.get(envelope, "customerEvents", []), (event) => {
+            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
               this.metric.increment("ship.outoing.event", 1);
               await this.serviceClient.sendAnonymousEvent(event);
             });
             const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
             userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
           } else {
-            _.forEach(_.get(envelope, "customerEvents", []), (event) => {
+            _.forEach(_.get(envelope, "customerEvents", []), async (event) => {
               this.metric.increment("ship.outoing.event", 1);
               await this.serviceClient.sendEvent(envelope.customer.id, event);
             });
@@ -302,7 +301,7 @@ class SyncAgent {
       }
     });
     // Process all users that should be deleted
-    filteredEnvelopes.toDelete.forEach((envelope: TUserUpdateEnvelope) => {
+    filteredEnvelopes.toDelete.forEach(async (envelope: TUserUpdateEnvelope) => {
       try {
         this.metric.increment("ship.outgoing.user", 1);
         await this.serviceClient.deleteCustomer(_.get(envelope, "customer.id"));
@@ -345,7 +344,7 @@ class SyncAgent {
     return asUser.track(event.event, event.properties, event.context).then(() => {
       return asUser.logger.info("incoming.event.success", { event });
     }).catch((err) => {
-      return asUser.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_TRACKFAILED, message: err.message innerException: err });
+      return asUser.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_TRACKFAILED, message: err.message, innerException: err });
     });
   }
 }

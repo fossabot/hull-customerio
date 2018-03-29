@@ -85,8 +85,11 @@ class ServiceClient {
   checkValidCredentials(): Promise<boolean> {
     return this.agent.get("/auth").then(() => {
       return true;
-    }).catch(() => {
-      return false;
+    }).catch((err) => {
+      if(_.get(err, "response.status") === 401) {
+        return false;
+      }
+      throw err;
     });
   }
 
@@ -137,7 +140,7 @@ class ServiceClient {
 
   /**
    * Sends an anonymous event.
-   * 
+   *
    * @param {ICustomerIoEvent} event The event data.
    * @returns {Promise<ICustomerIoEvent>} A promise which resolves to the event data if operation succeeded.
    * @memberof ServiceClient

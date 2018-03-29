@@ -3,8 +3,8 @@ import type { TUserUpdateEnvelope, TFilterResults, IOperationsUtilOptions, ICust
 
 const _ = require("lodash");
 
-const FilterUtil = require("./sync-agent/filter-util");
-const MappingUtil = require("./sync-agent/mapping-util");
+const FilterUtil = require("./filter-util");
+const MappingUtil = require("./mapping-util");
 
 function combineUserAccount(envelopes: Array<TUserUpdateEnvelope>): Array<TUserUpdateEnvelope> {
   return _.map(envelopes, (envelope) => {
