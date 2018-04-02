@@ -59,6 +59,18 @@ export interface IOperationsUtilOptions {
   segmentPropertyName: string;
 }
 
+export interface IValidationUtilOptions {
+  maxAttributeNameLength: number;
+  maxAttributeValueLength: number;
+  maxIdentifierValueLength: number;
+}
+
+export type TBusinessValidationResult = {
+  isValid: boolean,
+  validationErrors: Array<string>
+}
+
+
 export type TConnectorOperationResult = "success" | "error" | "skip";
 
 export type THashAlgorithm = "md5" | "sha1";

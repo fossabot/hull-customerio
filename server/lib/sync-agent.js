@@ -1,6 +1,6 @@
 /* @flow */
 import type { THullReqContext, THullUserUpdateMessage } from "hull";
-import type { IMetricsClient, IServiceClientOptions, TUserUpdateEnvelope, IFilterUtilOptions, IMappingUtilOptions, IServiceCredentials, TFilterResults, ICustomerIoEvent } from "./types";
+import type { IMetricsClient, IServiceClientOptions, TUserUpdateEnvelope, IFilterUtilOptions, IMappingUtilOptions, IServiceCredentials, TFilterResults, ICustomerIoEvent, IValidationUtilOptions } from "./types";
 
 const _ = require("lodash");
 const Promise = require("bluebird");
@@ -9,6 +9,7 @@ const FilterUtil = require("./sync-agent/filter-util");
 const ServiceClient = require("./service-client");
 const MappingUtil = require("./sync-agent/mapping-util");
 const HashUtil = require("./sync-agent/hash-util");
+const ValidationUtil = require("./sync-agent/validation-util");
 const SHARED_MESSAGES = require("./shared-messages");
 
 const BASE_API_URL = "https://track.customer.io";
@@ -73,7 +74,21 @@ class SyncAgent {
    */
   hashUtil: HashUtil;
 
+  /**
+   * Gets or sets the property name used for user segments.
+   *
+   * @type {string}
+   * @memberof SyncAgent
+   */
   segmentPropertyName: string;
+
+  /**
+   * Gets or sets the validation utility.
+   *
+   * @type {ValidationUtil}
+   * @memberof SyncAgent
+   */
+  validationUtil: ValidationUtil;
 
   /**
    * Creates an instance of SyncAgent.
@@ -123,6 +138,15 @@ class SyncAgent {
 
     // Init the hash util
     this.hashUtil = new HashUtil();
+
+    // Init the validation util
+    const valUtilOptions: IValidationUtilOptions = {
+      maxAttributeNameLength: 150,
+      maxAttributeValueLength: 1000,
+      maxIdentifierValueLength: 150
+    };
+
+    this.validationUtil = new ValidationUtil(valUtilOptions);
   }
 
   /**
@@ -221,9 +245,15 @@ class SyncAgent {
   }
 
   updateUserEnvelope(envelope: TUserUpdateEnvelope): Promise<*> {
+    const userScopedClient = this.client.asUser(envelope.message.user);
+    const validationResult = this.validationUtil.validateCustomer(envelope.customer);
+
+    if (validationResult.isValid === false) {
+      return userScopedClient.logger.info("outgoing.user.error", { data: envelope.customer, operation: "updateCustomer", validationErrors: validationResult.validationErrors });
+    }
+
     this.metric.increment("ship.outgoing.users", 1);
     const userTraits = this.mappingUtil.mapToHullTraits(envelope.customer, new Date());
-    const userScopedClient = this.client.asUser(envelope.message.user);
     return this.serviceClient.updateCustomer(envelope.customer)
       .then(() => {
         return userScopedClient.traits(userTraits, { source: "customerio" }).then(() => {

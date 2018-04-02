@@ -6,7 +6,10 @@ const SHARED_MESSAGES = {
   SKIP_NOIDVALUE: "User doesn't have a value for the attribute which is mapped to the identifier in customer.io.",
   ERROR_INVALIDEVENT: "Payload couldn't be mapped to Hull event.",
   ERROR_NOUSERIDENT: "Payload didn't contain any identifier for a Hull user.",
-  ERROR_TRACKFAILED: "Event tracking failed, see innerException for details."
+  ERROR_TRACKFAILED: "Event tracking failed, see innerException for details.",
+  ERROR_VALIDATION_MAXLENGTHID: "The unique identifier exceeds the limit, maximum size allowed is 150 bytes.",
+  ERROR_VALIDATION_MAXLENGTHNAME: "The attribute name exceeds the limit, maximum size allowed is 150 bytes. The following attribute is invalid:",
+  ERROR_VALIDATION_MAXLENGTHVALUE: "The value for the attribute exceeds the limit, maximum size allowed is 1000 bytes. The following data is invalid:"
 };
 
 module.exports = SHARED_MESSAGES;
