@@ -3,7 +3,6 @@ const payload = require("../../fixtures/webhook-payloads/email-drafted-noemail.j
 const SHARED_MESSAGES = require("../../../../server/lib/shared-messages");
 
 module.exports = (ctxMock) => {
-
   expect(ctxMock.client.asUser.mock.calls).toHaveLength(0);
 
   expect(ctxMock.client.logger.error.mock.calls).toHaveLength(1);
