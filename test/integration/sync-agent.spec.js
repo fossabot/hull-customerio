@@ -52,7 +52,8 @@ describe("SyncAgent", () => {
       "webhook-emaildelivered",
       "webhook-emailsent",
       "webhook-emailopened",
-      "webhook-emailconverted"
+      "webhook-emailconverted",
+      "webhook-emaildrafted-noemail"
     ];
     scenariosToRun.forEach((scenarioName) => {
       test(`${scenarioName}`, () => {

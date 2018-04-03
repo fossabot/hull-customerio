@@ -319,12 +319,12 @@ class SyncAgent {
 
     this.metric.increment("ship.incoming.events", 1);
     if (event === null) {
-      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_INVALIDEVENT, data: payload });
+      this.client.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_INVALIDEVENT, data: payload });
       return Promise.resolve();
     }
 
     if (_.size(userIdent) === 0) {
-      this.client.logger.info("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_NOUSERIDENT, data: payload });
+      this.client.logger.error("incoming.event.error", { reason: SHARED_MESSAGES.ERROR_NOUSERIDENT, data: payload });
       return Promise.resolve();
     }
 

@@ -152,8 +152,8 @@ class MappingUtil {
     const identObj = {};
     // Handle email
     const regex = /[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+/img;
-    const rawEmail = _.get(payload, "data.email_address", "");
-    const parsedEmails = rawEmail.match(regex);
+    const rawEmail = _.get(payload, "data.email_address", null);
+    const parsedEmails = _.isNil(rawEmail) ? [] : rawEmail.match(regex);
     if (parsedEmails && parsedEmails.length > 0) {
       _.set(identObj, "email", parsedEmails[0]);
     }
