@@ -5,7 +5,7 @@ module.exports = (ctxMock) => {
   };
   expect(ctxMock.client.asUser.mock.calls[0])
     .toEqual([userData]);
- 
+
   const event = {
     context: {
       created_at: 1522340303,

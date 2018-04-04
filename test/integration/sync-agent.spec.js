@@ -27,6 +27,7 @@ describe("SyncAgent", () => {
 
   describe("sendUserMessages", () => {
     const scenariosToRun = [
+      "contact-insert"
     ];
     scenariosToRun.forEach((scenarioName) => {
       test(`${scenarioName}`, () => {
