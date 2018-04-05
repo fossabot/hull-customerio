@@ -104,7 +104,18 @@ class ServiceClient {
   updateCustomer(customer: TCustomerIoCustomer): Promise<TCustomerIoCustomer> {
     const attributes = _.omit(customer, "id");
     const id = _.get(customer, "id");
-    return this.agent.put("/api/v1/customers/{{id}}").tmplVar({ id }).send(attributes).then(() => {
+    const promises = [];
+    if (_.keys(attributes).length <= 30) {
+      promises.push(this.agent.put("/api/v1/customers/{{id}}").tmplVar({ id }).send(attributes));
+    } else {
+      const chunks = _.chunk(_.keys(attributes), 30);
+      chunks.forEach((chunk) => {
+        const chunkedAttributes = _.pick(attributes, chunk);
+        promises.push(this.agent.put("/api/v1/customers/{{id}}").tmplVar({ id }).send(chunkedAttributes));
+      });
+    }
+
+    return Promise.all(promises).then(() => {
       return customer;
     });
   }
