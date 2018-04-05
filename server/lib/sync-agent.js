@@ -274,7 +274,7 @@ class SyncAgent {
         if (!envelope.customer || !envelope.customer.id) {
           // No ID, send as anonymous events
           return Promise.all(_.get(envelope, "customerEvents", []).map((event) => {
-            this.metric.increment("ship.outoing.events", 1);
+            this.metric.increment("ship.outgoing.events", 1);
             return this.serviceClient.sendAnonymousEvent(event);
           }))
             .then(() => {
@@ -283,7 +283,7 @@ class SyncAgent {
             });
         }
         return Promise.all(_.get(envelope, "customerEvents", []).map((event) => {
-          this.metric.increment("ship.outoing.events", 1);
+          this.metric.increment("ship.outgoing.events", 1);
           return this.serviceClient.sendEvent(envelope.customer.id, event);
         }))
           .then(() => {
@@ -301,7 +301,7 @@ class SyncAgent {
         return userScopedClient.traits({
           deleted_at: new Date(), id: null, hash: null, synced_at: null, created_at: null
         }, { source: "customerio" }).then(() => {
-          return userScopedClient.logger.info("outgoing.user.success", { data: envelope.customer, operation: "deleteCustomer" });
+          return userScopedClient.logger.info("outgoing.user.success", { data: { id: envelope.customer.id }, operation: "deleteCustomer" });
         });
       });
   }

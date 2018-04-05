@@ -27,8 +27,14 @@ describe("SyncAgent", () => {
 
   describe("sendUserMessages", () => {
     const scenariosToRun = [
-      "contact-insert",
-      "contact-insert-30plusattribs"
+      "customer-insert",
+      "customer-insert-30plusattribs",
+      "customer-insert-skip-noidvalue",
+      "customer-update",
+      "customer-update-event-insert",
+      "customer-update-skip-nochanges",
+      "customer-update-skip-notinsegments",
+      "customer-delete"
     ];
     scenariosToRun.forEach((scenarioName) => {
       test(`${scenarioName}`, () => {

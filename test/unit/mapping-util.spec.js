@@ -263,19 +263,19 @@ describe("MappingUtil", () => {
 
     const expected = {
       context: {
-        created_at: 1522283447, 
-        event_id: "01C9QJM259SPWQF2JZ8GX9HY7J", 
+        created_at: 1522283447,
+        event_id: "01C9QJM259SPWQF2JZ8GX9HY7J",
         ip: "0"
-      }, 
-      event: "Email Sent", 
-      id: "01C9QJM259SPWQF2JZ8GX9HY7J", 
+      },
+      event: "Email Sent",
+      id: "01C9QJM259SPWQF2JZ8GX9HY7J",
       properties: {
-        campaign_id: "12", 
-        campaign_name: "Started Vault Trials - 1 - Welcome, Installing and Deploying Vault", 
-        customer_id: "5abc2de89ba6c1be560019e3", 
-        email_address: "Sven <sven+dt2@hull.io>", 
-        email_id: "ZI6aBAABYm8p-RzGk9KlbP_MSBwc", 
-        email_subject: "How Vault Enterprise trials work", 
+        campaign_id: "12",
+        campaign_name: "Started Vault Trials - 1 - Welcome, Installing and Deploying Vault",
+        customer_id: "5abc2de89ba6c1be560019e3",
+        email_address: "Sven <sven+dt2@hull.io>",
+        email_id: "ZI6aBAABYm8p-RzGk9KlbP_MSBwc",
+        email_subject: "How Vault Enterprise trials work",
         template_id: "35"
       }
     };
