@@ -1,9 +1,20 @@
 ## CHANGELOG
 
-## 0.1.8
+## v0.1.11
+- safeguad email detection on incoming webhook
+
+## 0.1.10
 
 - rely on `user.created_at` trait instead of calculating it on every update - possible loop condition
 - fix incoming webhooks user ident resolution
+
+## 0.1.9
+
+- cast outgoing date traits ending with "_date" and "_at"
+
+## 0.1.8
+
+- make sure we pass account information to attributes mapper and to c.io
 
 ## 0.1.7
 
