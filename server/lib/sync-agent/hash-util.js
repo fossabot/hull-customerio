@@ -12,7 +12,7 @@ class HashUtil {
    * @returns {string} The hash of the data.
    * @memberof HashUtil
    */
-  hash(data: any, algorithm: THashAlgorithm = "sha1"): string {
+  hash(data: Object, algorithm: THashAlgorithm = "sha1"): string {
     const opts = {
       algorithm,
       encoding: "hex",

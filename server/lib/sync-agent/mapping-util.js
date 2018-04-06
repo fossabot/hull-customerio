@@ -1,5 +1,5 @@
 /* @flow */
-import type { THullEvent, THullUser, THullSegment } from "hull";
+import type { THullEvent, THullUser, THullSegment, THullUserIdent } from "hull";
 import type { IMappingUtilOptions, ICustomerIoEvent, TCustomerIoCustomer } from "../types";
 
 const _ = require("lodash");
@@ -148,7 +148,7 @@ class MappingUtil {
    * @returns {Object} The ident object.
    * @memberof MappingUtil
    */
-  mapWebhookToUserIdent(payload: Object): Object {
+  mapWebhookToUserIdent(payload: Object): THullUserIdent {
     const identObj = {};
     // Handle email
     const regex = /[A-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[A-Z0-9.-]+/img;

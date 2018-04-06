@@ -172,6 +172,9 @@ class SyncAgent {
     return this.serviceClient.checkValidCredentials();
   }
 
+  /**
+   * This method get messages from user update notification and create array of evelopes
+   */
   createUserUpdateEnvelopes(messages: Array<THullUserUpdateMessage>): Array<TUserUpdateEnvelope> {
     return _.map(messages, (message): TUserUpdateEnvelope => {
       const hullUser = _.cloneDeep(_.get(message, "user", {}));

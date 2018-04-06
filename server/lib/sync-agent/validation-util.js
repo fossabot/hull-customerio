@@ -54,7 +54,7 @@ class ValidationUtil {
     return validationResult;
   }
 
-  getBytes(value: any): number {
+  getBytes(value: string | null | void): number {
     if (_.isNil(value)) {
       return 0;
     }
