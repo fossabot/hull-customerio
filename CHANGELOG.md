@@ -1,5 +1,8 @@
 ## CHANGELOG
 
+## v0.1.11
+- safeguad email detection on incoming webhook
+
 ## 0.1.10
 
 - rely on `user.created_at` trait instead of calculating it on every update - possible loop condition
