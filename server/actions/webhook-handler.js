@@ -8,7 +8,6 @@ function webhookHandler(req: TRequest, res: $Response): Promise<any> {
   res.send();
 
   const syncAgent = new SyncAgent(req.hull);
-
   return syncAgent.handleWebhook(req.body);
 }
 

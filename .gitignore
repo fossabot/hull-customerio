@@ -65,3 +65,5 @@ package-lock.json
 
 # build directory
 build
+
+yarn-error.log

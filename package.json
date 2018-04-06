@@ -1,7 +1,7 @@
 {
   "name": "hull-customerio",
   "description": "Sync users within customer.io service",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "homepage": "https://github.com/hull-ships/hull-customerio",
   "license": "MIT",
   "author": {
@@ -72,9 +72,10 @@
     "eslint-plugin-import": "^2.9.0",
     "eslint-plugin-jest": "^21.14.1",
     "flow-bin": "^0.69.0",
+    "flow-typed": "^2.4.0",
     "jest": "^22.4.2",
     "jsonlint": "^1.6.3",
-    "minihull": "^2.1.1",
+    "minihull": "^2.1.2",
     "mocha": "^3.4.2",
     "nock": "^9.0.14",
     "nyc": "^11.0.3",
