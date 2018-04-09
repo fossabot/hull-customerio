@@ -8,30 +8,26 @@ const bodyParser = require("body-parser");
 const {
   webhookHandler,
   statusCheck,
-  batchHandler,
   updateUser
 } = require("./actions");
-const applyAgent = require("./middlewares/apply-agent");
 const { encrypt } = require("./lib/crypto");
 
-function server(app: $Application, { hostSecret }: Object) {
+function server(app: $Application, { hostSecret }: Object): $Application {
   app.get("/admin.html", (req: TRequest, res: $Response) => {
     const token = encrypt(req.hull.config, hostSecret);
     res.render("admin.html", { hostname: req.hostname, token });
   });
 
-  app.use(applyAgent());
-
   app.all("/webhook", bodyParser.json(), webhookHandler);
 
   app.all("/status", statusCheck);
 
-  app.use("/batch", notifHandler({
+  app.use("/batch", smartNotifierHandler({
     userHandlerOptions: {
       groupTraits: false
     },
     handlers: {
-      "user:update": batchHandler
+      "user:update": updateUser
     }
   }));
 
