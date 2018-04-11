@@ -123,6 +123,49 @@ describe("MappingUtil", () => {
     expect(actual).toEqual(expected);
   });
 
+  test("should map a hull user with an account and no segments to a customer.io customer object with hull_id in the mappings", () => {
+    const userAttributeMappings = [
+      "account.clearbit/name",
+      "traits_salesforce_lead/title",
+      "first_name",
+      "last_name",
+      "account.clearbit/geo_state",
+      "id"
+    ];
+
+    const hullUser = {
+      account: {
+        "clearbit/name": "Hull Inc",
+        "clearbit/geo_state": "Georgia"
+      },
+      first_name: "Thomas",
+      last_name: "Bass",
+      email: "tb@hull.io",
+      created_at: "2017-06-19T23:40:06Z",
+      "traits_salesforce_lead/title": "Customer Success",
+      id: "123456"
+    };
+
+    const util = new MappingUtil({ userAttributeMappings, userAttributeServiceId: "email" });
+
+    const expected = {
+      "account_clearbit-name": "Hull Inc",
+      "salesforce_lead-title": "Customer Success",
+      first_name: "Thomas",
+      last_name: "Bass",
+      "account_clearbit-geo_state": "Georgia",
+      created_at: 1497915606,
+      email: "tb@hull.io",
+      hull_segments: [],
+      id: "tb@hull.io",
+      hull_id: "123456"
+    };
+
+    const actual = util.mapToServiceUser(hullUser, []);
+
+    expect(actual).toEqual(expected);
+  });
+
   test("should map a hull event to a customer.io event", () => {
     const hullEvent = {
       track_id: "5a839571964619dfe2039927",

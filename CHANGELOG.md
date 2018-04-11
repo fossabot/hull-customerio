@@ -1,9 +1,15 @@
-## CHANGELOG
+# CHANGELOG
+
+## v0.2.1
+
+- [bugfix] prevent hull `id` from over-writing the selected identifier for customer.io
 
 ## v0.2.0
+
 - refactor connector code - introduce SyncAgent, better automatic tests and code coverage
 
 ## v0.1.11
+
 - safeguad email detection on incoming webhook
 
 ## 0.1.10
