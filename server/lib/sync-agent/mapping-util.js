@@ -47,6 +47,9 @@ class MappingUtil {
   }
 
   createAttributeName(traitName: string): string {
+    if (traitName === "id") {
+      return "hull_id";
+    }
     if (_.startsWith(traitName, "traits_")) {
       return traitName.substr(7).split("/").join("-");
     }
