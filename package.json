@@ -1,7 +1,7 @@
 {
   "name": "hull-customerio",
   "description": "Sync users within customer.io service",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "homepage": "https://github.com/hull-ships/hull-customerio",
   "license": "MIT",
   "author": {
@@ -48,7 +48,7 @@
     "bluebird": "^3.4.1",
     "body-parser": "^1.18.2",
     "express": "^4.16.3",
-    "hull": "0.13.11",
+    "hull": "0.13.14",
     "lodash": "^4.17.5",
     "moment": "^2.21.0",
     "newrelic": "^2.4.1",

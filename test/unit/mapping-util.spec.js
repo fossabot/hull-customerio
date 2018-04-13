@@ -306,12 +306,11 @@ describe("MappingUtil", () => {
 
     const expected = {
       context: {
-        created_at: 1522283447,
-        event_id: "01C9QJM259SPWQF2JZ8GX9HY7J",
         ip: "0"
       },
       event: "Email Sent",
-      id: "01C9QJM259SPWQF2JZ8GX9HY7J",
+      event_id: "01C9QJM259SPWQF2JZ8GX9HY7J",
+      created_at: 1522283447,
       properties: {
         campaign_id: "12",
         campaign_name: "Started Vault Trials - 1 - Welcome, Installing and Deploying Vault",

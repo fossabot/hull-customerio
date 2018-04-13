@@ -5,15 +5,14 @@ module.exports = (ctxMock) => {
   };
   expect(ctxMock.client.asUser.mock.calls[0])
     .toEqual([userData]);
- 
+
   const event = {
     context: {
-      created_at: 1522339032,
-      event_id: "01C9S7MCY0E0R5YGZ18ZGKE10G",
       ip: "0"
     },
+    created_at: 1522339032,
     event: "Email Opened",
-    id: "01C9S7MCY0E0R5YGZ18ZGKE10G",
+    event_id: "01C9S7MCY0E0R5YGZ18ZGKE10G",
     properties: {
       campaign_id: "12",
       campaign_name: "Started Vault Trials - 1 - Welcome, Installing and Deploying Vault",

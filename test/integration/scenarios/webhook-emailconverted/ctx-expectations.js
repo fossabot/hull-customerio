@@ -8,12 +8,11 @@ module.exports = (ctxMock) => {
 
   const event = {
     context: {
-      created_at: 1522340303,
-      event_id: "01C9S8V5C5E16R6J6T903Q3GF7",
       ip: "0"
     },
+    created_at: 1522340303,
     event: "Email Converted",
-    id: "01C9S8V5C5E16R6J6T903Q3GF7",
+    event_id: "01C9S8V5C5E16R6J6T903Q3GF7",
     properties: {
       campaign_id: "12",
       campaign_name: "Started Vault Trials - 1 - Welcome, Installing and Deploying Vault",
