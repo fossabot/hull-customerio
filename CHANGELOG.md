@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.2
+
+- [bugfix] update `hull-node` to prevent incorrect smart-notifier responses
+- [bugfix] correct event handling for webhooks
+
 ## v0.2.1
 
 - [bugfix] prevent hull `id` from over-writing the selected identifier for customer.io
