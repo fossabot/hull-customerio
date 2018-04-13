@@ -201,9 +201,7 @@ class MappingUtil {
 
     // Handle context
     const context = {
-      ip: "0",
-      event_id: _.get(payload, "event_id"),
-      created_at: _.get(payload, "timestamp")
+      ip: "0"
     };
 
     // Hanlde the name
@@ -214,8 +212,9 @@ class MappingUtil {
     }
 
     const hullEvent: THullEvent = {
-      id: context.event_id,
+      event_id: _.get(payload, "event_id"),
       event: eventName,
+      created_at: _.get(payload, "timestamp"),
       context,
       properties: eventProps
     };
