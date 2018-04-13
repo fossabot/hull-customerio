@@ -1,6 +1,7 @@
 /* @flow */
 import type { $Application, $Response } from "express";
-import type { TRequest, THullReqContext } from "hull";
+import typeimport { CostExplorer } from "aws-sdk";
+ { TRequest, THullReqContext } from "hull";
 
 const { notifHandler, smartNotifierHandler, THullUserUpdateMessage } = require("hull/lib/utils");
 const bodyParser = require("body-parser");
@@ -51,6 +52,36 @@ function server(app: $Application, { hostSecret }: Object): $Application {
           });
         }
         return updateUser(ctx, messages);
+      },
+      "account:update": (ctx: THullReqContext) => {
+        if (ctx.smartNotifierResponse) {
+          ctx.smartNotifierResponse.setFlowControl({
+            type: "next",
+            in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
+            size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
+          });
+        }
+        return Promise.resolve();
+      },
+      "ship:update": (ctx: THullReqContext) => {
+        if (ctx.smartNotifierResponse) {
+          ctx.smartNotifierResponse.setFlowControl({
+            type: "next",
+            in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
+            size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
+          });
+        }
+        return Promise.resolve();
+      },
+      "organization:report": (ctx: THullReqContext) => {
+        if (ctx.smartNotifierResponse) {
+          ctx.smartNotifierResponse.setFlowControl({
+            type: "next",
+            in: parseInt(process.env.FLOW_CONTROL_IN, 10) || 1000,
+            size: parseInt(process.env.FLOW_CONTROL_SIZE, 10) || 100
+          });
+        }
+        return Promise.resolve();
       }
     }
   }));
