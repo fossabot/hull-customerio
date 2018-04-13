@@ -1,7 +1,6 @@
 /* @flow */
 import type { $Application, $Response } from "express";
-import typeimport { CostExplorer } from "aws-sdk";
- { TRequest, THullReqContext } from "hull";
+import type { TRequest, THullReqContext } from "hull";
 
 const { notifHandler, smartNotifierHandler, THullUserUpdateMessage } = require("hull/lib/utils");
 const bodyParser = require("body-parser");
