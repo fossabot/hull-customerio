@@ -237,14 +237,27 @@ class SyncAgent {
       });
 
       try {
-      // Process all users that should be inserted
-        await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
+        const promises = [];
+        filteredEnvelopes.toInsert.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.updateUserEnvelope(envelope));
+        });
+        filteredEnvelopes.toUpdate.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.updateUserEnvelope(envelope));
+        });
+        filteredEnvelopes.toDelete.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.deleteUserEnvelope(envelope));
+        });
+
+        return Promise.all(promises);
+
+        // Process all users that should be inserted
+        // await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
 
         // Process all users that should be updated
-        await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
+        // await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
 
         // Process all users that should be deleted
-        await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
+        // await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
       } catch (err) {
         this.client.logger.error("outgoing.data.error", { reason: "Failed to send data to customer.io API", details: err });
       }
