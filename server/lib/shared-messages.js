@@ -9,7 +9,8 @@ const SHARED_MESSAGES = {
   ERROR_TRACKFAILED: "Event tracking failed, see innerException for details.",
   ERROR_VALIDATION_MAXLENGTHID: "The unique identifier exceeds the limit, maximum size allowed is 150 bytes.",
   ERROR_VALIDATION_MAXLENGTHNAME: "The attribute name exceeds the limit, maximum size allowed is 150 bytes. The following attribute is invalid:",
-  ERROR_VALIDATION_MAXLENGTHVALUE: "The value for the attribute exceeds the limit, maximum size allowed is 1000 bytes. The following data is invalid:"
+  ERROR_VALIDATION_MAXLENGTHVALUE: "The value for the attribute exceeds the limit, maximum size allowed is 1000 bytes. The following data is invalid:",
+  ERROR_VALIDATION_INVALIDEMAILID: "The value for the identifier is an invalid email address:"
 };
 
 module.exports = SHARED_MESSAGES;

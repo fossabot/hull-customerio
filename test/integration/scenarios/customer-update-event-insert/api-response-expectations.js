@@ -5,6 +5,6 @@ module.exports = (nock) => {
     .reply(200, {});
 
   nock("https://track.customer.io")
-    .post(/\/api\/v1\/customers\/[\w-_@.]+\/events/)
+    .post(/\/api\/v1\/customers\/[\w%.]+\/events/)
     .reply(200, {});
 };

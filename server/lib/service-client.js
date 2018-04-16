@@ -103,7 +103,7 @@ class ServiceClient {
    */
   updateCustomer(customer: TCustomerIoCustomer): Promise<TCustomerIoCustomer> {
     const attributes = _.omit(customer, "id");
-    const id = _.get(customer, "id");
+    const id = encodeURIComponent(_.get(customer, "id"));
     const promises = [];
     if (_.keys(attributes).length <= 30) {
       promises.push(this.agent.put("/api/v1/customers/{{id}}").tmplVar({ id }).send(attributes));
@@ -129,7 +129,8 @@ class ServiceClient {
    * @see https://learn.customer.io/api/#apicustomers_delete
    */
   deleteCustomer(id: string): Promise<string> {
-    return this.agent.delete("/api/v1/customers/{{id}}").tmplVar({ id }).then(() => {
+    const customerId = encodeURIComponent(id);
+    return this.agent.delete("/api/v1/customers/{{customerId}}").tmplVar({ customerId }).then(() => {
       return id;
     });
   }
@@ -145,8 +146,9 @@ class ServiceClient {
    * @see https://learn.customer.io/api/#apipageview_event
    */
   sendEvent(id: string, event: ICustomerIoEvent): Promise<ICustomerIoEvent> {
-    return this.agent.post("/api/v1/customers/{{id}}/events")
-      .tmplVar({ id })
+    const customerId = encodeURIComponent(id);
+    return this.agent.post("/api/v1/customers/{{customerId}}/events")
+      .tmplVar({ customerId })
       .send(event)
       .then(() => {
         return event;
