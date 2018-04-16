@@ -6,7 +6,10 @@ const Promise = require("bluebird");
 
 function updateUser(ctx: TReqContext, messages: Array<THullUserUpdateMessage>): Promise<*> {
   const syncAgent = new SyncAgent(ctx);
-  return syncAgent.sendUserMessages(messages);
+  return syncAgent.sendUserMessages(messages)
+    .catch((err) => {
+      console.error(">>>> ERROR <<<<", err);
+    });
 }
 
 module.exports = updateUser;

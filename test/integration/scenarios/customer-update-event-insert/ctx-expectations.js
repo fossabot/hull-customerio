@@ -48,10 +48,10 @@ module.exports = (ctxMock) => {
   expect(ctxMock.metric.increment.mock.calls[2]).toEqual(["ship.outgoing.events", 1]);
   expect(ctxMock.metric.increment.mock.calls[3]).toEqual(["ship.service_api.call", 1, [
     "method:POST",
-    "url:https://track.customer.io/api/v1/customers/{{id}}/events",
+    "url:https://track.customer.io/api/v1/customers/{{customerId}}/events",
     "status:200",
     "statusGroup:2xx",
-    "endpoint:POST https://track.customer.io/api/v1/customers/{{id}}/events",
+    "endpoint:POST https://track.customer.io/api/v1/customers/{{customerId}}/events",
   ]]);
 
   expect(ctxMock.client.logger.debug.mock.calls).toHaveLength(3); // debug call from superagent (x2) and counters

@@ -41,9 +41,9 @@ module.exports = (ctxMock) => {
   expect(ctxMock.metric.increment.mock.calls[0]).toEqual(["ship.outgoing.users", 1]);
   expect(ctxMock.metric.increment.mock.calls[1]).toEqual(["ship.service_api.call", 1, [
     "method:DELETE",
-    "url:https://track.customer.io/api/v1/customers/{{id}}",
+    "url:https://track.customer.io/api/v1/customers/{{customerId}}",
     "status:200", "statusGroup:2xx",
-    "endpoint:DELETE https://track.customer.io/api/v1/customers/{{id}}"
+    "endpoint:DELETE https://track.customer.io/api/v1/customers/{{customerId}}"
   ]]);
 
   expect(ctxMock.client.logger.debug.mock.calls).toHaveLength(2); // debug calls from superagent

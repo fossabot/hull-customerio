@@ -205,46 +205,67 @@ class SyncAgent {
    * @memberof SyncAgent
    */
   async sendUserMessages(messages: Array<THullUserUpdateMessage>): Promise<*> {
-    if (this.isConfigured() === false) {
+    try {
+      if (this.isConfigured() === false) {
       // We don't need a log line here, it's already in the status that the connector is not configured.
-      return Promise.resolve();
+        return Promise.resolve();
+      }
+
+      if (messages.length === 0) {
+        return Promise.resolve();
+      }
+
+      // deduplicate all messages - merge events but take only last message from notification
+      const dedupedMessages: Array<THullUserUpdateMessage> = this.filterUtil.deduplicateMessages(messages);
+
+      // create envelopes with all necessary data
+      const userUpdateEnvelopes: Array<TUserUpdateEnvelope> = this.createUserUpdateEnvelopes(dedupedMessages);
+
+      // filter those envelopes to get `toSkip`, `toInsert`, `toUpdate` and `toDelete`
+      const filteredEnvelopes: TFilterResults<TUserUpdateEnvelope> = this.filterUtil.filterUsersBySegment(userUpdateEnvelopes);
+
+      this.client.logger.debug("sendUserMessages", {
+        toSkip: filteredEnvelopes.toSkip.length,
+        toUpdate: filteredEnvelopes.toUpdate.length,
+        toInsert: filteredEnvelopes.toInsert.length,
+        toDelete: filteredEnvelopes.toDelete.length
+      });
+
+      // Process all users that should be skipped
+      filteredEnvelopes.toSkip.forEach((envelope: TUserUpdateEnvelope) => {
+        this.client.asUser(envelope.message.user).logger.info("outgoing.user.skip", { reason: envelope.skipReason });
+      });
+
+      try {
+        const promises = [];
+        filteredEnvelopes.toInsert.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.updateUserEnvelope(envelope));
+        });
+        filteredEnvelopes.toUpdate.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.updateUserEnvelope(envelope));
+        });
+        filteredEnvelopes.toDelete.forEach((envelope: TUserUpdateEnvelope) => {
+          promises.push(this.deleteUserEnvelope(envelope));
+        });
+
+        return Promise.all(promises);
+
+        // Process all users that should be inserted
+        // await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
+
+        // Process all users that should be updated
+        // await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
+
+        // Process all users that should be deleted
+        // await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
+      } catch (err) {
+        this.client.logger.error("outgoing.data.error", { reason: "Failed to send data to customer.io API", details: err });
+      }
+    } catch (err) {
+      this.client.logger.error("outgoing.data.error", { reason: "Failed to process outgoing user messages.", details: err });
     }
 
-    if (messages.length === 0) {
-      return Promise.resolve();
-    }
-
-    // deduplicate all messages - merge events but take only last message from notification
-    const dedupedMessages: Array<THullUserUpdateMessage> = this.filterUtil.deduplicateMessages(messages);
-
-    // create envelopes with all necessary data
-    const userUpdateEnvelopes: Array<TUserUpdateEnvelope> = this.createUserUpdateEnvelopes(dedupedMessages);
-
-    // filter those envelopes to get `toSkip`, `toInsert`, `toUpdate` and `toDelete`
-    const filteredEnvelopes: TFilterResults<TUserUpdateEnvelope> = this.filterUtil.filterUsersBySegment(userUpdateEnvelopes);
-
-    this.client.logger.debug("sendUserMessages", {
-      toSkip: filteredEnvelopes.toSkip.length,
-      toUpdate: filteredEnvelopes.toUpdate.length,
-      toInsert: filteredEnvelopes.toInsert.length,
-      toDelete: filteredEnvelopes.toDelete.length
-    });
-
-    // Process all users that should be skipped
-    filteredEnvelopes.toSkip.forEach((envelope: TUserUpdateEnvelope) => {
-      this.client.asUser(envelope.message.user).logger.info("outgoing.user.skip", { reason: envelope.skipReason });
-    });
-
-    // Process all users that should be inserted
-    await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
-
-    // Process all users that should be updated
-    await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
-
-    // Process all users that should be deleted
-    await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
-
-    return true;
+    return Promise.resolve(true);
   }
 
   updateUserEnvelope(envelope: TUserUpdateEnvelope): Promise<*> {
@@ -283,6 +304,15 @@ class SyncAgent {
             .then(() => {
               const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
               return userScopedClient.logger.info("outgoing.event.success", { events: eventsAnonLogData, operation: "sendAnonymousEvent" });
+            })
+            .catch((err) => {
+              const eventsAnonLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
+              userScopedClient.logger.info("outgoing.event.error", {
+                events: eventsAnonLogData,
+                operation: "sendAnonymousEvent",
+                reason: _.get(err, "message", "Unknown error"),
+                details: err
+              });
             });
         }
         return Promise.all(_.get(envelope, "customerEvents", []).map((event) => {
@@ -292,6 +322,15 @@ class SyncAgent {
           .then(() => {
             const eventsCustomerLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
             userScopedClient.logger.info("outgoing.event.success", { events: eventsCustomerLogData, operation: "sendEvent" });
+          })
+          .catch((err) => {
+            const eventsCustomerLogData = _.map(_.get(envelope, "customerEvents"), e => e.name);
+            userScopedClient.logger.info("outgoing.event.error", {
+              events: eventsCustomerLogData,
+              operation: "sendEvent",
+              reason: _.get(err, "message", "Unknown error"),
+              details: err
+            });
           });
       });
   }
@@ -305,6 +344,14 @@ class SyncAgent {
           deleted_at: new Date(), id: null, hash: null, synced_at: null, created_at: null
         }, { source: "customerio" }).then(() => {
           return userScopedClient.logger.info("outgoing.user.success", { data: { id: envelope.customer.id }, operation: "deleteCustomer" });
+        });
+      })
+      .catch((err) => {
+        userScopedClient.logger.info("outgoing.user.error", {
+          id: envelope.customer.id,
+          operation: "deleteCustomer",
+          reason: _.get(err, "message", "Unknown error"),
+          details: err
         });
       });
   }
