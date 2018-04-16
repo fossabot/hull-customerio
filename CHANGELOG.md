@@ -1,8 +1,14 @@
 # CHANGELOG
 
+## v0.2.4
+
+- [performance] concurrent requests
+- [bugfix] always encode identifiers in URIs to prevent email identifiers causing wrong paths
+
 ## v0.2.3
-- reenable connector tester
-- add option to disable signature validation
+
+- [maintenance] reenable connector tester
+- [maintenance] add option to disable signature validation
 
 ## v0.2.2
 
