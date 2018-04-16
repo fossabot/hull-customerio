@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.2.3
+- reenable connector tester
+- add option to disable signature validation
+
 ## v0.2.2
 
 - [bugfix] update `hull-node` to prevent incorrect smart-notifier responses
