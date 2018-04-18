@@ -204,7 +204,7 @@ class SyncAgent {
    * @returns {Promise<any>} A promise which contains all operation results.
    * @memberof SyncAgent
    */
-  async sendUserMessages(messages: Array<THullUserUpdateMessage>): Promise<*> {
+  sendUserMessages(messages: Array<THullUserUpdateMessage>): Promise<*> {
     try {
       if (this.isConfigured() === false) {
       // We don't need a log line here, it's already in the status that the connector is not configured.
@@ -238,26 +238,20 @@ class SyncAgent {
 
       try {
         const promises = [];
+        // Process all users that should be inserted
         filteredEnvelopes.toInsert.forEach((envelope: TUserUpdateEnvelope) => {
           promises.push(this.updateUserEnvelope(envelope));
         });
+        // Process all users that should be updated
         filteredEnvelopes.toUpdate.forEach((envelope: TUserUpdateEnvelope) => {
           promises.push(this.updateUserEnvelope(envelope));
         });
+        // Process all users that should be deleted
         filteredEnvelopes.toDelete.forEach((envelope: TUserUpdateEnvelope) => {
           promises.push(this.deleteUserEnvelope(envelope));
         });
 
         return Promise.all(promises);
-
-        // Process all users that should be inserted
-        // await Promise.all(filteredEnvelopes.toInsert.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
-
-        // Process all users that should be updated
-        // await Promise.all(filteredEnvelopes.toUpdate.map((envelope: TUserUpdateEnvelope) => this.updateUserEnvelope(envelope)));
-
-        // Process all users that should be deleted
-        // await Promise.all(filteredEnvelopes.toDelete.map((envelope: TUserUpdateEnvelope) => this.deleteUserEnvelope(envelope)));
       } catch (err) {
         this.client.logger.error("outgoing.data.error", { reason: "Failed to send data to customer.io API", details: err });
       }

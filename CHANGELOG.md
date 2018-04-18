@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.2.5
+
+- [performance] improve requests throttling, introduce `THROTTLE_RATE` and `THROTTLE_RATE_PER` to control rate limit, they are set to maxium possible 30 requests per second
+
 ## v0.2.4
 
 - [performance] concurrent requests
