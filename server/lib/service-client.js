@@ -8,6 +8,9 @@ const prefixPlugin = require("superagent-prefix");
 
 const { superagentUrlTemplatePlugin, superagentInstrumentationPlugin, superagentErrorPlugin } = require("hull/lib/utils");
 
+const throttlePool = {};
+
+
 class ServiceClient {
   /**
    * Gets or sets the url prefix for all API calls.
@@ -60,14 +63,17 @@ class ServiceClient {
     this.logger = options.logger;
     this.metricsClient = options.metricsClient;
 
-    const throttle = new SuperagentThrottle({
-      rate: 30, // how many requests can be sent every `ratePer`
-      ratePer: 34000, // number of ms in which `rate` requests may be sent
+
+    throttlePool[this.auth.username] = throttlePool[this.auth.username] || new SuperagentThrottle({
+      rate: parseInt(process.env.THROTTLE_RATE, 10) || 30, // how many requests can be sent every `ratePer`
+      ratePer: parseInt(process.env.THROTTLE_RATE_PER, 10) || 1000, // number of ms in which `rate` requests may be sent
     });
+
+    const throttle = throttlePool[this.auth.username];
 
     this.agent = superagent.agent()
       .use(prefixPlugin(this.urlPrefix))
-      .use(throttle.plugin(this.auth.username))
+      .use(throttle.plugin())
       .use(superagentErrorPlugin({ timeout: 10000 }))
       .use(superagentUrlTemplatePlugin())
       .use(superagentInstrumentationPlugin({ logger: this.logger, metric: this.metricsClient }))
