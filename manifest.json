@@ -4,7 +4,7 @@
   "source": "customerio",
   "logo": "logo.png",
   "picture": "picture.png",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "tags": [
     "outgoing",
     "batch",

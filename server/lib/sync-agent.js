@@ -337,7 +337,7 @@ class SyncAgent {
         return userScopedClient.traits({
           deleted_at: new Date(), id: null, hash: null, synced_at: null, created_at: null
         }, { source: "customerio" }).then(() => {
-          return userScopedClient.logger.info("outgoing.user.success", { data: { id: envelope.customer.id }, operation: "deleteCustomer" });
+          return userScopedClient.logger.info("outgoing.user.deletion", { data: { id: envelope.customer.id }, operation: "deleteCustomer" });
         });
       })
       .catch((err) => {
