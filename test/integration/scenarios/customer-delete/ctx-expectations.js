@@ -51,7 +51,7 @@ module.exports = (ctxMock) => {
 
   expect(ctxMock.client.logger.info.mock.calls).toHaveLength(1);
   expect(ctxMock.client.logger.info.mock.calls[0][0])
-    .toEqual("outgoing.user.success");
+    .toEqual("outgoing.user.deletion");
   expect(ctxMock.client.logger.info.mock.calls[0][1])
     .toEqual({ data: { id: customerDataX.id }, operation: "deleteCustomer" });
 };

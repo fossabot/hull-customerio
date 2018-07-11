@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.2.6
+
+- log `outgoing.user.deletion` instead of `success` when we are deleting customer in c.io
+- upgrade hull-node
+
 ## v0.2.5
 
 - [performance] improve requests throttling, introduce `THROTTLE_RATE` and `THROTTLE_RATE_PER` to control rate limit, they are set to maxium possible 30 requests per second
