@@ -3,6 +3,7 @@
 ## v0.2.6
 
 - log `outgoing.user.deletion` instead of `success` when we are deleting customer in c.io
+- upgrade hull-node
 
 ## v0.2.5
 
