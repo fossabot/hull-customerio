@@ -1,8 +1,8 @@
 /* @flow */
 import type { $Application, $Response } from "express";
-import type { TRequest, THullReqContext } from "hull";
+import type { TRequest, THullReqContext, THullUserUpdateMessage } from "hull";
 
-const { notifHandler, smartNotifierHandler, THullUserUpdateMessage } = require("hull/lib/utils");
+const { notifHandler, smartNotifierHandler } = require("hull/lib/utils");
 const bodyParser = require("body-parser");
 
 const {
