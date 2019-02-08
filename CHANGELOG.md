@@ -1,9 +1,12 @@
 # CHANGELOG
 
+## v0.2.8
+
+- Reword filters
+
 ## v0.2.7
 
 - upgrade hull-node to 0.13.17 to resolve batch endpoint error
-
 
 ## v0.2.6
 
