@@ -166,7 +166,6 @@ class SyncAgent {
     if (Number.isNaN(parsedValue)) { return defaultNumber; }
 
     return parsedValue;
-
   }
 
 
