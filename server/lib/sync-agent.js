@@ -139,15 +139,36 @@ class SyncAgent {
     // Init the hash util
     this.hashUtil = new HashUtil();
 
+    const maxAttributeNameLength = this.getNumberFromContext(reqContext, "ship.private_settings.max_attribute_name_length", 150);
+    const maxAttributeValueLength = this.getNumberFromContext(reqContext, "ship.private_settings.max_attribute_value_length", 1000);
+    const maxIdentifierValueLength = this.getNumberFromContext(reqContext, "ship.private_settings.max_identifier_value_length", 150);
+
     // Init the validation util
     const valUtilOptions: IValidationUtilOptions = {
-      maxAttributeNameLength: 150,
-      maxAttributeValueLength: 1000,
-      maxIdentifierValueLength: 150
+      maxAttributeNameLength,
+      maxAttributeValueLength,
+      maxIdentifierValueLength
     };
 
     this.validationUtil = new ValidationUtil(valUtilOptions);
   }
+
+  getNumberFromContext(reqContext: THullReqContext, settingPath: string, defaultNumber: number) {
+    const value = _.get(reqContext, settingPath, null);
+
+    if (value === null) {
+      return defaultNumber;
+    } else if (typeof value === "number") {
+      return value;
+    }
+
+    const parsedValue = Number.parseInt(value, 10);
+    if (Number.isNaN(parsedValue)) { return defaultNumber; }
+
+    return parsedValue;
+
+  }
+
 
   /**
    * Checks whether the connector is configured with
