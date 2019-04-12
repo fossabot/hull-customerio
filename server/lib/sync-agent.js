@@ -12,6 +12,8 @@ const HashUtil = require("./sync-agent/hash-util");
 const ValidationUtil = require("./sync-agent/validation-util");
 const SHARED_MESSAGES = require("./shared-messages");
 
+const { getNumberFromContext } = require("./utils");
+
 const BASE_API_URL = "https://track.customer.io";
 const SEGMENT_PROPERTY_NAME = "segments"; // Prep for transition to dedicated segments for accounts and users
 
@@ -139,11 +141,15 @@ class SyncAgent {
     // Init the hash util
     this.hashUtil = new HashUtil();
 
+    const maxAttributeNameLength = getNumberFromContext(reqContext, "ship.private_settings.max_attribute_name_length", 150);
+    const maxAttributeValueLength = getNumberFromContext(reqContext, "ship.private_settings.max_attribute_value_length", 1000);
+    const maxIdentifierValueLength = getNumberFromContext(reqContext, "ship.private_settings.max_identifier_value_length", 150);
+
     // Init the validation util
     const valUtilOptions: IValidationUtilOptions = {
-      maxAttributeNameLength: 150,
-      maxAttributeValueLength: 1000,
-      maxIdentifierValueLength: 150
+      maxAttributeNameLength,
+      maxAttributeValueLength,
+      maxIdentifierValueLength
     };
 
     this.validationUtil = new ValidationUtil(valUtilOptions);
